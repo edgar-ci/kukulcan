@@ -190,16 +190,7 @@
         reset();
       }
       if(index===1) {
-        q('.scene-footer small').textContent='Toca el recipiente; después mueve el control del calentador.';
-        goal('Mira cómo se mueve lo invisible');
-        note('Modelo cualitativo de un gas. Temperatura y movimiento cambian juntos; los tamaños no son reales.');
-        board.innerHTML=`<div class="workbench">${object('jar','Abrir la lupa','jar','Toca el recipiente')}</div><div id="particle-lab" hidden><button class="particle-window" id="particle-definition" aria-label="Descubrir la energía cinética"><svg viewBox="0 0 440 180" aria-hidden="true">${Array.from({length:26},(_,i)=>`<circle cx="${20+i*37%400}" cy="${20+i*29%140}" r="6" fill="#4d9cab"/>`).join('')}</svg><span>Toca una partícula para descubrir más ↗</span></button><div class="heater"><span aria-hidden="true">${picture('stove')}</span><label class="dial-label">Gira el control del calentador<span class="dial-box" style="--dial-angle:-54deg"><span class="dial-face" aria-hidden="true"><i></i></span><input id="heater-dial" type="range" min="0" max="100" value="30" aria-label="Temperatura del calentador"></span><output id="heater-value">30 °C</output></label></div></div>`;
-        say('Toca el recipiente para mirar sus partículas.');cue('jar');
-        let temp=30;
-        attach('jar',()=>{item('jar').parentElement.hidden=true;q('#particle-lab').hidden=false;q('#heater-dial').focus({preventScroll:true});say('Gira el control. ¿Qué pasa con las partículas cuando sube la temperatura?');const dots=[...q('#particle-lab').querySelectorAll('circle')];let time=0;animate(1,t=>{time=t;dots.forEach((d,i)=>{const speed=(.5+i%4*.16)*(1+temp/45);d.setAttribute('cx',20+(i*37+time*speed*22)%400);d.setAttribute('cy',20+(i*29+time*speed*13)%140)})},null,true)});
-        q('#heater-dial').oninput=e=>{temp=+e.target.value;q('#heater-value').textContent=temp+' °C';q('.dial-box').style.setProperty('--dial-angle',(temp*2.7-135)+'deg');q('#heater-value').style.color=temp>55?'#b14f29':'#367e92';q('#particle-lab').querySelectorAll('circle').forEach(d=>{d.setAttribute('fill',temp>55?'#de8051':'#4d9cab');if(reduced)d.setAttribute('r','6')});if(reduced)readout(`${temp} °C: ${temp>55?'mayor':temp<25?'menor':'intermedia'} agitación. Movimiento reducido activado.`)};
-        const dial=q('#heater-dial');let turning=false;const turn=e=>{const r=dial.getBoundingClientRect();let angle=Math.atan2(e.clientY-r.top-r.height/2,e.clientX-r.left-r.width/2)*180/Math.PI+90;if(angle>180)angle-=360;dial.value=String(Math.round((Math.max(-135,Math.min(135,angle))+135)/2.7));dial.dispatchEvent(new Event('input',{bubbles:true}));};dial.onpointerdown=e=>{e.preventDefault();dial.focus({preventScroll:true});turning=true;dial.setPointerCapture(e.pointerId);turn(e)};dial.onpointermove=e=>{if(turning)turn(e)};dial.onpointerup=dial.onpointercancel=()=>{turning=false};
-        q('#particle-definition').onclick=()=>say('Energía cinética significa energía de movimiento. La temperatura se relaciona con su promedio: no todas las partículas se mueven igual.');
+        WaterParticles.mount({board,q,goal,note,say,readout,animate,reduced,helpers});
       }
       if(index===2) {
         goal('Encuentra la pareja que llegue a 50 °C');note('Bloques con igual capacidad térmica, sin pérdidas. La temperatura final es el promedio.');
