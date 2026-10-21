@@ -1,0 +1,145 @@
+/* Interactive scenes: all actions support touch selection and keyboard.
+   Combining objects also supports pointer dragging, including touch screens. */
+(() => {
+  let cleanup = () => {};
+  const icons = {
+    cup: '<path d="M107 58h17c35 0 35 46 0 46h-17" fill="none" stroke="#bb7652" stroke-width="11"/><path d="M35 56h80l-6 65q-34 17-68 0Z" fill="#e9a379" stroke="#a76e4c" stroke-width="2"/><ellipse cx="75" cy="56" rx="40" ry="10" fill="#705345"/><g fill="none" stroke="#899c91" stroke-width="3"><path d="M62 37q-8-8 0-17t0-16M85 37q-8-8 0-17t0-16"/></g>',
+    ice: '<path d="M39 38h76l-9 96H48Z" fill="#a3d5df" stroke="#528a99" stroke-width="3"/><path d="M44 77h66l-5 54H49Z" fill="#70b4ca"/><g fill="#effdff" stroke="#79b5c5"><rect x="54" y="66" width="24" height="24" rx="5" transform="rotate(-12 66 78)"/><rect x="77" y="83" width="25" height="25" rx="5" transform="rotate(14 90 96)"/></g>',
+    hand: '<path d="M45 108L24 75q-6-12 5-15 7-2 17 15V39q0-15 12-15t12 15v29h3V22q0-15 11-15t11 15v46h3V30q0-14 11-14t11 14v38h3V47q0-13 11-13t11 13v57q0 42-48 42-34 0-52-38Z" fill="#efc09c" stroke="#ac866d" stroke-width="2"/>',
+    block: '<path d="M30 48l27-22h87l-27 22Z" fill="#f3c5a2"/><path d="M117 48l27-22v89l-27 22Z" fill="#ad755b"/><rect x="30" y="48" width="87" height="89" rx="4" fill="#e69b79"/>',
+    coldBlock: '<path d="M30 48l27-22h87l-27 22Z" fill="#c3e5e5"/><path d="M117 48l27-22v89l-27 22Z" fill="#5f939b"/><rect x="30" y="48" width="87" height="89" rx="4" fill="#86bdc8"/>',
+    jar: '<path d="M48 26h66v22l13 19v70q-46 20-92 0V67l13-19Z" fill="#d6e9df" stroke="#658f89" stroke-width="3"/><path d="M39 87h84v47q-42 17-84 0Z" fill="#8dc6d3"/><path d="M44 23h74" stroke="#698e82" stroke-width="9" stroke-linecap="round"/>',
+    coat: '<path d="M32 49q50-28 100 0v82q-50 25-100 0Z" fill="#b5c7a1" stroke="#637e59" stroke-width="3"/><path d="M46 47v91m20-96v102m20-102v102m20-96v91m18-82v71" stroke="#e9eddd" stroke-width="5"/><ellipse cx="82" cy="48" rx="47" ry="13" fill="#e9eddd" stroke="#637e59" stroke-width="3"/>',
+    clock: '<circle cx="80" cy="80" r="53" fill="#fffaf0" stroke="#557c73" stroke-width="7"/><path d="M80 43v39l23 15" fill="none" stroke="#e17846" stroke-width="6" stroke-linecap="round"/><circle cx="80" cy="80" r="5" fill="#557c73"/>',
+    clinical: '<g transform="rotate(-25 80 80)"><path d="M20 80h30" stroke="#7d9e9c" stroke-width="10" stroke-linecap="round"/><rect x="45" y="57" width="100" height="46" rx="22" fill="#fffdf0" stroke="#73978e" stroke-width="3"/><rect x="65" y="67" width="50" height="25" rx="3" fill="#c8d8ae"/><text x="90" y="85" text-anchor="middle" font-size="14" fill="#294b43">36.5</text><circle cx="130" cy="80" r="6" fill="#e17846"/></g>',
+    liquid: '<rect x="67" y="17" width="26" height="103" rx="13" fill="#fffdf0" stroke="#76918a" stroke-width="3"/><circle cx="80" cy="125" r="19" fill="#df865b"/><path d="M80 121V55" stroke="#df865b" stroke-width="9"/><path d="M86 35h15m-15 20h15m-15 20h15m-15 20h15" stroke="#76918a" stroke-width="2"/>',
+    probe: '<path d="M65 103q-60 20-40-50" fill="none" stroke="#577e78" stroke-width="4"/><rect x="46" y="25" width="91" height="113" rx="13" fill="#577e78"/><rect x="59" y="43" width="64" height="39" rx="4" fill="#cedeb8"/><text x="91" y="69" text-anchor="middle" font-size="20" fill="#294b43">180°</text><circle cx="91" cy="110" r="10" fill="#e3a27a"/>',
+    pan: '<path d="M20 67q47 22 94 0l-10 41q-37 23-74 0Z" fill="#c18d69" stroke="#8a634c" stroke-width="3"/><ellipse cx="67" cy="67" rx="47" ry="16" fill="#ebc7a8" stroke="#8a634c" stroke-width="3"/><path d="M114 80h37" stroke="#8c7056" stroke-width="12" stroke-linecap="round"/>',
+    handle: '<path d="M26 92l112-36" stroke="#927456" stroke-width="22" stroke-linecap="round"/><path d="M39 92l85-27m-79 17l77-24" stroke="#b79b76" stroke-width="2"/>',
+    stove: '<ellipse cx="80" cy="115" rx="58" ry="17" fill="#ccd5c4"/><ellipse cx="80" cy="102" rx="57" ry="18" fill="none" stroke="#6e8077" stroke-width="7"/><path d="M52 90q-12-17 3-34 2 13 9 16-5-26 16-43-2 25 13 35 7-7 9-17 20 28 3 43" fill="#e6874d"/><path d="M68 89q-4-18 13-30 0 15 12 30" fill="#f5c465"/>',
+    calorimeter: '<path d="M35 50v79q45 23 90 0V50" fill="#bad1bd" stroke="#537f74" stroke-width="4"/><ellipse cx="80" cy="50" rx="45" ry="14" fill="#e5ebdf" stroke="#537f74" stroke-width="3"/><path d="M72 16v75" stroke="#faf9f4" stroke-width="12"/><path d="M72 35v57" stroke="#d88154" stroke-width="4"/><path d="M100 22v63l12 9" fill="none" stroke="#537f74" stroke-width="4"/>',
+    stir: '<path d="M70 20v92l25 20" fill="none" stroke="#587e74" stroke-width="8" stroke-linecap="round"/><ellipse cx="95" cy="130" rx="17" ry="7" fill="#9bb4a4"/>',
+    token: '<rect x="27" y="31" width="106" height="98" rx="17" fill="#f8e8cf" stroke="#b69b74" stroke-width="3"/><path d="M57 80h46m-23-23v46" stroke="#d7b37d" stroke-width="4"/>'
+  };
+  const picture = kind => `<svg viewBox="0 0 165 160" aria-hidden="true" focusable="false">${icons[kind] || icons.token}</svg>`;
+  window.HeatScenes = {
+    destroy() { cleanup(); cleanup = () => {}; },
+    mount(index, helpers) {
+      this.destroy();
+      const stage = document.getElementById('stage');
+      stage.className = 'stage play-stage';
+      const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let selected = null, busy = false, frame = 0, paused = false, alive = true;
+      let replayAction = null, suppressClick = false, drag = null, elapsed = 0, last = 0;
+      const disposers = [];
+      stage.innerHTML = `<div class="scene-goal"><span>EXPLORA CON LAS MANOS</span><strong id="scene-goal"></strong></div><div class="scene-bubble" id="scene-bubble" role="status" aria-live="polite"></div><div class="scene-board" id="scene-board"></div><div class="scene-readout" id="scene-readout" aria-live="polite"></div><div class="scene-footer"><small>Toca un objeto y su destino, o arrástralo.</small><button id="scene-pause" class="text-button" hidden>Ⅱ Pausar</button><button id="scene-replay" class="text-button" hidden>↺ Volver a probar</button></div>`;
+      const q = s => stage.querySelector(s), board = q('#scene-board');
+      const goal = msg => q('#scene-goal').textContent = msg;
+      const say = msg => q('#scene-bubble').textContent = msg;
+      const readout = msg => q('#scene-readout').textContent = msg;
+      const note = msg => document.getElementById('model-note').textContent = msg;
+      const cue = id => { stage.querySelectorAll('.object-cue').forEach(e=>e.classList.remove('object-cue')); q(`[data-object="${id}"]`)?.classList.add('object-cue'); };
+      function object(id, label, kind, sub = '', extra = '') {
+        return `<button type="button" class="lab-object ${extra}" data-object="${id}" aria-label="${label}${sub?'. '+sub:''}">${picture(kind)}<strong>${label}</strong><span class="object-sub">${sub}</span></button>`;
+      }
+      const item = id => q(`[data-object="${id}"]`);
+      function choose(id, message) {
+        selected = id;
+        stage.querySelectorAll('[data-object]').forEach(e => {const active=e.dataset.object===id;e.classList.toggle('object-selected',active);if(e.classList.contains('draggable'))e.setAttribute('aria-pressed',String(active));});
+        say(message);
+      }
+      function unselect() { selected=null;stage.querySelectorAll('.object-selected').forEach(e=>{e.classList.remove('object-selected');e.setAttribute('aria-pressed','false')}); }
+      function replay(fn) { replayAction=fn;q('#scene-replay').hidden=false;if(document.activeElement?.disabled)q('#scene-replay').focus({preventScroll:true}); }
+      q('#scene-replay').onclick=()=>{if(!busy&&replayAction){q('#scene-replay').hidden=true;unselect();readout('');replayAction();q('.object-cue')?.focus({preventScroll:true});}};
+      function attach(id, onClick, canDrag=false) {
+        const el=item(id);
+        el.onclick=()=>{if(suppressClick){suppressClick=false;return}if(!busy)onClick()};
+        if(!canDrag)return;
+        el.classList.add('draggable');el.setAttribute('aria-pressed','false');
+        el.onpointerdown=e=>{if(busy||e.button!==0)return;drag={el,id,x:e.clientX,y:e.clientY,moved:false};el.setPointerCapture(e.pointerId)};
+        el.onpointermove=e=>{if(!drag||drag.el!==el)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.hypot(dx,dy)>8){if(!drag.moved){onClick();drag.moved=true;el.classList.add('is-dragging')}el.style.transform=`translate(${dx}px,${dy}px)`}};
+        el.onpointerup=e=>{if(!drag||drag.el!==el)return;const moved=drag.moved;el.style.transform='';el.classList.remove('is-dragging');drag=null;if(!moved)return;suppressClick=true;const target=document.elementsFromPoint(e.clientX,e.clientY).map(n=>n.closest?.('[data-object]')).find(n=>n&&n!==el&&stage.contains(n));if(target)target.click();else say('El objeto volvió a su lugar. Toca un destino o vuelve a arrastrarlo.');setTimeout(()=>{suppressClick=false},0)};
+        el.onpointercancel=()=>{el.style.transform='';el.classList.remove('is-dragging');drag=null;unselect();say('Movimiento cancelado. Puedes tocar el objeto y después su destino.')};
+      }
+      // Cancel propagation suppression only for the click synthesized after a drag,
+      // never for the destination activation itself.
+      function allowDestination(id, fn) { const el=item(id);el.onclick=()=>{if(!busy)fn()}; }
+      let animationTick=null;
+      function animate(duration, update, done, loop=false) {
+        if(busy)return;
+        busy=true;paused=false;elapsed=0;last=0;
+        stage.classList.add('scene-running');q('#scene-pause').hidden=reduced;q('#scene-pause').textContent='Ⅱ Pausar';
+        if(reduced){update(loop?0:1);busy=false;stage.classList.remove('scene-running');done?.();return;}
+        animationTick=t=>{if(!alive)return;if(!last)last=t;if(!paused){elapsed+=Math.min(t-last,80);update(loop?elapsed/1000:Math.min(1,elapsed/duration))}last=t;if(!loop&&elapsed>=duration){busy=false;q('#scene-pause').hidden=true;stage.classList.remove('scene-running');done?.();return}frame=requestAnimationFrame(animationTick)};
+        frame=requestAnimationFrame(animationTick);
+      }
+      q('#scene-pause').onclick=()=>{paused=!paused;q('#scene-pause').textContent=paused?'▶ Continuar':'Ⅱ Pausar';stage.classList.toggle('scene-paused',paused)};
+      const visibility=()=>{if(document.hidden&&busy){paused=true;q('#scene-pause').textContent='▶ Continuar';stage.classList.add('scene-paused')}};
+      document.addEventListener('visibilitychange',visibility);
+      cleanup=()=>{alive=false;cancelAnimationFrame(frame);document.removeEventListener('visibilitychange',visibility);disposers.forEach(fn=>fn());};
+            function transfer(from,to,done) {
+        const a=item(from), b=item(to);a.classList.add('transferring');b.classList.add('receiving');
+        animate(2400,p=>{q('.energy-path')?.style.setProperty('--travel',String(p));},()=>{a.classList.remove('transferring');b.classList.remove('receiving');done()});
+      }
+      const namesObserver=new MutationObserver(()=>{stage.querySelectorAll('[data-object]').forEach(el=>el.setAttribute('aria-label',[el.querySelector('strong')?.textContent,el.querySelector('.object-sub')?.textContent].filter(Boolean).join('. ')))});namesObserver.observe(board,{childList:true,subtree:true,characterData:true});disposers.push(()=>namesObserver.disconnect());
+      const paths='<div class="energy-path" aria-hidden="true"><span>●</span><span>●</span><span>●</span><b>→</b></div>';
+      function assembly() {
+        board.innerHTML='<div class="object-shelf" id="shelf"></div><div class="workbench" id="workbench"></div>';
+        return {shelf:q('#shelf'),bench:q('#workbench')};
+      }
+      if(index===0) {
+        goal('Descubre hacia dónde viaja la energía');
+        note('Solo en el dibujo. No toques líquidos calientes. Temperaturas ilustrativas.');
+        let cold=false, finished=false;
+        function scene() {
+          finished=false;
+          board.innerHTML=`<div class="workbench">${object('cup',cold?'Vaso con hielo':'Taza caliente',cold?'ice':'cup',cold?'5 °C':'65 °C')}${paths}${object('hand','Mano del dibujo','hand','32 °C','destination')}</div>`;
+          say(cold?'Ahora toca el vaso. ¿La energía viajará en la misma dirección?':'Toca la taza para descubrir qué pasa.');cue('cup');
+          attach('cup',()=>{if(finished)return;choose('cup',`Está a ${cold?'5':'65'} °C. Acércal${cold?'o':'a'} a la mano del dibujo. ¿Quién dará energía?`);cue('hand')},true);
+          allowDestination('hand',()=>{if(finished)return;if(selected!=='cup'){say('Primero elige la taza o el vaso; después toca esta mano.');return}unselect();cue('');finished=true;
+            q('.energy-path').classList.toggle('reverse',cold);
+            say(cold?'Observa: la mano entrega energía al vaso.':'Observa: la taza entrega energía a la mano.');
+            transfer(cold?'hand':'cup',cold?'cup':'hand',()=>{readout(cold?'32 °C → 5 °C · El frío no viaja.':'65 °C → 32 °C · El calor es energía en tránsito.');say(cold?'En ambos casos, la energía pasa del cuerpo más caliente al más frío.':'Ahora prueba con hielo y compara la dirección.');replay(()=>{cold=!cold;scene()});q('#scene-replay').textContent=cold?'↺ Volver a probar':'Probar con hielo →';});
+          });
+        } scene();
+      }
+      if(index===1) {
+        q('.scene-footer small').textContent='Toca el recipiente; después mueve el control del calentador.';
+        goal('Mira cómo se mueve lo invisible');
+        note('Modelo cualitativo de un gas. Temperatura y movimiento cambian juntos; los tamaños no son reales.');
+        board.innerHTML=`<div class="workbench">${object('jar','Abrir la lupa','jar','Toca el recipiente')}</div><div id="particle-lab" hidden><button class="particle-window" id="particle-definition" aria-label="Descubrir la energía cinética"><svg viewBox="0 0 440 180" aria-hidden="true">${Array.from({length:26},(_,i)=>`<circle cx="${20+i*37%400}" cy="${20+i*29%140}" r="6" fill="#4d9cab"/>`).join('')}</svg><span>Toca una partícula para descubrir más ↗</span></button><div class="heater"><span aria-hidden="true">${picture('stove')}</span><label class="dial-label">Gira el control del calentador<span class="dial-box" style="--dial-angle:-54deg"><span class="dial-face" aria-hidden="true"><i></i></span><input id="heater-dial" type="range" min="0" max="100" value="30" aria-label="Temperatura del calentador"></span><output id="heater-value">30 °C</output></label></div></div>`;
+        say('Toca el recipiente para mirar sus partículas.');cue('jar');
+        let temp=30;
+        attach('jar',()=>{item('jar').parentElement.hidden=true;q('#particle-lab').hidden=false;q('#heater-dial').focus({preventScroll:true});say('Gira el control. ¿Qué pasa con las partículas cuando sube la temperatura?');const dots=[...q('#particle-lab').querySelectorAll('circle')];let time=0;animate(1,t=>{time=t;dots.forEach((d,i)=>{const speed=(.5+i%4*.16)*(1+temp/45);d.setAttribute('cx',20+(i*37+time*speed*22)%400);d.setAttribute('cy',20+(i*29+time*speed*13)%140)})},null,true)});
+        q('#heater-dial').oninput=e=>{temp=+e.target.value;q('#heater-value').textContent=temp+' °C';q('.dial-box').style.setProperty('--dial-angle',(temp*2.7-135)+'deg');q('#heater-value').style.color=temp>55?'#b14f29':'#367e92';q('#particle-lab').querySelectorAll('circle').forEach(d=>{d.setAttribute('fill',temp>55?'#de8051':'#4d9cab');if(reduced)d.setAttribute('r','6')});if(reduced)readout(`${temp} °C: ${temp>55?'mayor':temp<25?'menor':'intermedia'} agitación. Movimiento reducido activado.`)};
+        const dial=q('#heater-dial');let turning=false;const turn=e=>{const r=dial.getBoundingClientRect();let angle=Math.atan2(e.clientY-r.top-r.height/2,e.clientX-r.left-r.width/2)*180/Math.PI+90;if(angle>180)angle-=360;dial.value=String(Math.round((Math.max(-135,Math.min(135,angle))+135)/2.7));dial.dispatchEvent(new Event('input',{bubbles:true}));};dial.onpointerdown=e=>{e.preventDefault();dial.focus({preventScroll:true});turning=true;dial.setPointerCapture(e.pointerId);turn(e)};dial.onpointermove=e=>{if(turning)turn(e)};dial.onpointerup=dial.onpointercancel=()=>{turning=false};
+        q('#particle-definition').onclick=()=>say('Energía cinética significa energía de movimiento. La temperatura se relaciona con su promedio: no todas las partículas se mueven igual.');
+      }
+      if(index===2) {
+        goal('Encuentra la pareja que llegue a 50 °C');note('Bloques con igual capacidad térmica, sin pérdidas. La temperatura final es el promedio.');
+        function scene(){const {shelf,bench}=assembly();shelf.innerHTML=[40,60,80].map(t=>object('b'+t,'Bloque a '+t+' °C','block','Elige una pareja')).join('');bench.innerHTML=`${object('target','Bloque a 20 °C','coldBlock','Destino','destination')}<div class="pair-result"><span id="pair-hot">¿?</span><span>⇄</span><span id="pair-cold">20 °C</span></div>`;say('Elige un bloque. Después tócalo con el bloque azul. ¿Cuál llegará a 50 °C?');cue('b40');[40,60,80].forEach(t=>attach('b'+t,()=>{choose('b'+t,`Elegiste ${t} °C. Toca el bloque azul para unirlos.`);cue('target')},true));allowDestination('target',()=>{if(!selected){say('Elige primero uno de los tres bloques de arriba.');return}const t=Number(selected.slice(1)),mean=(t+20)/2;unselect();cue('');say('Se están acercando a una misma temperatura…');animate(2600,p=>{q('#pair-hot').textContent=(t+(mean-t)*p).toFixed(1)+' °C';q('#pair-cold').textContent=(20+(mean-20)*p).toFixed(1)+' °C'},()=>{const win=mean===50;readout(`${win?'✓ Objetivo conseguido.':'Esta pareja llega a '+mean+' °C.'} (${t} + 20) ÷ 2 = ${mean} °C`);say(win?'Ambos están a 50 °C: ya no hay transferencia neta de calor.':'La energía se conserva. Prueba con otra pareja para llegar a 50 °C.');replay(scene)});});}scene();
+      }
+      if(index===3) {
+        goal('Encuentra tres parejas de energía');note('Se usa la aproximación del libro: 1 cal ≈ 4.187 J.');
+        const pairs=[['1 kcal','1 000 cal','1 × 1 000 = 1 000 cal.'],['2 kcal','2 000 cal','2 × 1 000 = 2 000 cal.'],['1 cal','≈ 4.187 J','Una caloría equivale aproximadamente a 4.187 joules.']];
+        function scene(){let matched=new Set();board.innerHTML=`<div class="matching-grid"><div class="matching-column">${pairs.map((p,i)=>object('unit'+i,p[0],'token','Selecciona')).join('')}</div><div class="matching-column">${[2,0,1].map(i=>object('match'+i,pairs[i][1],'token','Su equivalente','destination')).join('')}</div></div><div class="secondary-tools"><button id="explore-calorimeter" class="illustrated-tool">${picture('calorimeter')}<span>Explora el calorímetro ↗</span></button><button id="converter" class="text-button">Abrir conversor ↗</button></div>`;say('Toca 1 kcal y busca la ficha que representa la misma energía.');cue('unit0');pairs.forEach((p,i)=>{attach('unit'+i,()=>{if(matched.has(i))return;choose('unit'+i,`${p[0]}: toca o arrastra hacia su equivalente.`);cue('')},true);allowDestination('match'+i,()=>{if(!selected){say('Selecciona primero una ficha de la izquierda.');return}const chosen=+selected.slice(4);if(chosen!==i){say('Todavía no coinciden. Recuerda: 1 kcal = 1 000 cal y 1 cal ≈ 4.187 J.');return}matched.add(i);unselect();item('unit'+i).disabled=true;item('match'+i).disabled=true;item('unit'+i).classList.add('matched');item('match'+i).classList.add('matched');say(p[2]);readout(`${matched.size} de 3 parejas encontradas`);if(matched.size===3){say('¡Las tres parejas representan la misma energía con distintas unidades!');replay(scene)}else cue('unit'+[0,1,2].find(n=>!matched.has(n)));});});q('#converter').onclick=()=>{helpers.openModal('Conversor de energía','<label>Energía <input id="energy" type="number" min="0" max="1000000" step="any" value="1"></label> <label>Unidad <select id="unit"><option>cal</option><option>kcal</option><option>J</option></select></label><p id="conversion-result" role="status"></p><p>Usamos 4.187 J/cal, la aproximación del libro.</p>');const update=()=>{const input=document.getElementById('energy'),n=Number(input.value),unit=document.getElementById('unit').value,out=document.getElementById('conversion-result');if(!input.value||!Number.isFinite(n)||n<0||n>1e6){out.textContent='Escribe un número entre 0 y 1 000 000.';return}const cal=unit==='J'?n/4.187:unit==='kcal'?n*1000:n;const fmt=x=>x.toLocaleString('es-MX',{maximumFractionDigits:4});out.textContent=`${fmt(cal)} cal = ${fmt(cal/1000)} kcal ≈ ${fmt(cal*4.187)} J`};document.getElementById('energy').oninput=update;document.getElementById('unit').onchange=update;update()};q('#explore-calorimeter').onclick=()=>{helpers.openModal('Explora el calorímetro',`<div class="calorimeter-explorer">${['Recipiente aislante','Termómetro','Agitador'].map((n,i)=>`<button class="lab-object" data-part="${i}">${picture(['calorimeter','liquid','stir'][i])}<strong>${n}</strong></button>`).join('')}</div><p id="part-description" role="status">Toca una parte para descubrir su función.</p>`);document.querySelectorAll('[data-part]').forEach(b=>b.onclick=()=>document.getElementById('part-description').textContent=['El recipiente reduce el intercambio de calor con el exterior.','El termómetro registra cambios de temperatura. Con la cantidad de materia y sus propiedades, podemos determinar la energía intercambiada.','El agitador ayuda a distribuir la temperatura dentro del recipiente.'][+b.dataset.part])};}scene();
+      }
+      if(index===4) {
+        goal('Protege uno y compara qué ocurre');note('Ambiente a 20 °C. Comparación ilustrativa, sin tiempo físico real. El aislamiento reduce pérdidas.');
+        let covered=null,finished=false;
+        function scene(){finished=false;covered=null;const {shelf,bench}=assembly();shelf.innerHTML=object('coat','Funda aislante','coat','Colócala en un recipiente');bench.innerHTML=`${object('left','Recipiente A','jar','80 °C','destination')}${object('clock','Observar el paso del tiempo','clock','Primero coloca la funda')}${object('right','Recipiente B','jar','80 °C','destination')}`;say('Toca la funda y el recipiente que quieres proteger.');cue('coat');attach('coat',()=>{choose('coat','Toca el recipiente A o B. ¿Cuál conservará mejor su temperatura?');cue('')},true);['left','right'].forEach(id=>allowDestination(id,()=>{if(selected!=='coat'){say('Selecciona la funda antes de tocar un recipiente.');return}covered=id;finished=false;unselect();['left','right'].forEach(n=>{item(n).classList.toggle('insulated',n===id);item(n).querySelector('.object-sub').textContent='80 °C'});readout('');say('La funda está colocada. Toca el reloj para comparar.');cue('clock')}));attach('clock',()=>{if(!covered){say('Primero coloca la funda en uno de los recipientes.');return}if(finished){say('Mueve la funda al otro recipiente para repetir.');return}unselect();cue('');say('Los dos se enfrían. Observa cuál pierde energía más lentamente.');animate(3600,p=>{['left','right'].forEach(id=>item(id).querySelector('.object-sub').textContent=(20+60*Math.exp(-p*(id===covered?1.4:6))).toFixed(1)+' °C')},()=>{finished=true;readout('Con funda: 34.8 °C · Sin funda: 20.1 °C');say('El aislamiento frena la pérdida de energía. Mueve la funda al otro recipiente para comprobarlo.');replay(scene)});});}scene();
+      }
+      if(index===5) {
+        goal('Elige el instrumento para cada encargo');note('Rangos ficticios de estos instrumentos didácticos. En la realidad, consulta el fabricante.');
+        const jobs=[['Temperatura corporal','Necesitas medir 37 °C con un instrumento de uso corporal.','clinical'],['Agua de laboratorio','Necesitas medir agua a 70 °C con un termómetro de inmersión.','liquid'],['Proceso industrial','Necesitas medir un proceso a 180 °C.','probe']];
+        const tools=[['clinical','Clínico digital','Uso corporal · 32 a 43 °C'],['liquid','Líquido en tubo','Inmersión · 0 a 100 °C'],['probe','Sonda industrial','Proceso industrial · 0 a 300 °C']];let job=0;
+        function scene(){const {shelf,bench}=assembly();shelf.innerHTML=tools.map(t=>object(t[0],t[1],t[0],t[2])).join('');bench.innerHTML=object('job',jobs[job][0],['hand','jar','stove'][job],jobs[job][1],'destination job-target');say(`Encargo ${job+1} de 3. Toca un instrumento para conocer su uso y rango.`);cue(tools[0][0]);tools.forEach(t=>attach(t[0],()=>{choose(t[0],`${t[1]}: ${t[2]}. Colócalo sobre el encargo si es adecuado.`);cue('job')},true));allowDestination('job',()=>{if(!selected){say('Primero toca un instrumento para ver su rango y su uso.');return}if(selected!==jobs[job][2]){say('Revisa tanto el rango como el uso previsto. Este encargo necesita otro instrumento.');return}unselect();cue('');readout(`✓ Encargo ${job+1} resuelto: ${tools[job][1]}.`);say(job===2?'Elegiste los tres instrumentos según su uso y rango.':'Ese instrumento es adecuado por su uso y rango. Vamos al siguiente encargo.');stage.querySelectorAll('[data-object]').forEach(b=>b.disabled=true);replay(()=>{job=(job+1)%3;scene()});q('#scene-replay').textContent=job===2?'↺ Volver a probar':'Siguiente encargo →';});}scene();
+      }
+      if(index===6) {
+        goal('Construye una sartén que cocine y proteja');note('Modelo cualitativo. El cobre conduce más que el acero; la madera dificulta que el calor llegue a la mano.');
+        let body=null,handle=null,finished=false;
+        function scene(){body=null;handle=null;finished=false;const {shelf,bench}=assembly();shelf.innerHTML=object('copper-body','Cuerpo de cobre','pan','Buen conductor')+object('steel-body','Cuerpo de acero','pan','Conductor')+object('wood-handle','Mango de madera','handle','Baja conductividad')+object('copper-handle','Mango de cobre','handle','Alta conductividad');bench.innerHTML=`${object('body','Coloca el cuerpo','pan','Destino','destination')}${object('handle','Coloca el mango','handle','Destino','destination')}${object('stove','Probar en el fogón','stove','Completa tu sartén')}`;board.insertAdjacentHTML('beforeend','<button class="text-button" id="compare-materials">Consultar los ocho materiales ↗</button>');q('#compare-materials').onclick=helpers.materialsModal;say('Toca un cuerpo y colócalo en su silueta. Luego elige un mango.');cue('copper-body');['copper-body','steel-body','wood-handle','copper-handle'].forEach(id=>attach(id,()=>{choose(id,id.endsWith('body')?'Coloca esta pieza en la silueta del cuerpo.':'Coloca esta pieza en la silueta del mango.');cue(id.endsWith('body')?'body':'handle')},true));['body','handle'].forEach(dest=>allowDestination(dest,()=>{if(!selected||!selected.endsWith(dest)){say(`Elige una pieza para el ${dest==='body'?'cuerpo':'mango'} y colócala aquí.`);return}if(dest==='body')body=selected;else handle=selected;item(dest).querySelector('strong').textContent=item(selected).querySelector('strong').textContent;item(dest).querySelector('.object-sub').textContent='Pieza colocada ✓';item(dest).classList.add('assembled');item(dest).classList.toggle('copper',selected.startsWith('copper'));item(dest).classList.toggle('steel',selected.startsWith('steel'));unselect();finished=false;['body','handle'].forEach(n=>{item(n).classList.remove('heating');item(n).style.removeProperty('--heat')});readout('');say(body&&handle?'La sartén está lista. Toca el fogón para probarla.':'Ahora elige la pieza que falta.');cue(body&&handle?'stove':body?'wood-handle':'copper-body')}));attach('stove',()=>{if(!body||!handle){say('Completa el cuerpo y el mango antes de probar.');return}if(finished){say('Puedes cambiar una pieza o volver a probar.');return}cue('');say('La energía pasa del fogón al cuerpo y de ahí hacia el mango.');animate(2600,p=>{item('body').style.setProperty('--heat',p);item('handle').style.setProperty('--heat',handle==='copper-handle'?p:p*.12);item('body').classList.add('heating');item('handle').classList.add('heating')},()=>{finished=true;const good=handle==='wood-handle';readout(good?'✓ El cuerpo conduce y el mango dificulta el paso del calor.':'El mango de cobre también se calienta: prueba uno de madera.');say(good?(body==='copper-body'?'El cobre conduce muy bien. La madera reduce el paso de energía hacia la mano.':'El acero también sirve para el cuerpo, aunque conduce menos que el cobre. La madera dificulta que el calor llegue a la mano.'):'Conducir bien ayuda a cocinar, pero no protege la mano. Cambia el mango.');replay(scene)});});}scene();
+      }
+    }
+  };
+})();
