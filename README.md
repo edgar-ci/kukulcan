@@ -31,3 +31,13 @@ Se mantienen los ocho materiales, el conversor, el cuaderno y el diccionario. Lo
 ### Verificación de la segunda versión
 
 Probado en el navegador integrado en escritorio y anchura móvil: selección y arrastre de objetos, emparejamiento correcto e incorrecto, bloques a 30 y 50 °C, funda en ambos recipientes, tres encargos, sartén con acero/cobre y mango correcto/incorrecto, conversor, arrastre fuera del destino, teclado y emulación de movimiento reducido. El progreso anterior se conserva. Comprobación sintáctica de los archivos JavaScript completada. La revisión de accesibilidad incluyó el árbol accesible y navegación por teclado; no fue una auditoría con lector de pantalla externo.
+
+## Mesa 1: mezcla de tres vasos
+
+Los vasos comienzan con 100 g de agua líquida a 70, 25 y 10 °C. Cada acción vierte hasta 25 g, limitada por el agua restante y la capacidad de 250 g del destino. Se pueden encadenar mezclas; las etiquetas conservan la referencia inicial y muestran la temperatura actual por separado.
+
+`dist/mixing.js` calcula por conservación de energía, con calor específico constante e igual para ambas porciones: T final = (m destino × T destino + m vertida × T origen) / (m destino + m vertida). El origen pierde masa pero conserva la temperatura de su agua restante; los vasos vacíos no tienen temperatura de agua asignada. El modelo excluye pérdidas al ambiente, capacidad térmica del recipiente y cambios de fase. El vertido transporta materia y energía; el calor se intercambia entre las porciones a distinta temperatura al mezclarse. La animación de inclinación, superficie y chorro es ilustrativa, no un cálculo de dinámica de fluidos.
+
+Fuente: OpenStax, University Physics Volume 2, sección 1.4, Heat Transfer, Specific Heat, and Calorimetry: https://openstax.org/books/university-physics-volume-2/pages/1-4-heat-transfer-specific-heat-and-calorimetry
+
+Pruebas: `node tests/mixing.test.cjs`. Incluyen 22 °C al agregar 25 g a 70 °C a 100 g a 10 °C; mezcla inversa a 58 °C; vaso ambiente a 34 °C; igualdad de temperaturas; vaciado, rellenado, límite de capacidad y conservación de masa y energía durante una secuencia de 400 vertidos. Verificados en navegador el vertido, su pausa, explicación del cálculo, teclado, arrastre, movimiento reducido y distribución móvil/escritorio.

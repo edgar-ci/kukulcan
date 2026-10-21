@@ -51,14 +51,14 @@
       function unselect() { selected=null;stage.querySelectorAll('.object-selected').forEach(e=>{e.classList.remove('object-selected');e.setAttribute('aria-pressed','false')}); }
       function replay(fn) { replayAction=fn;q('#scene-replay').hidden=false;if(document.activeElement?.disabled)q('#scene-replay').focus({preventScroll:true}); }
       q('#scene-replay').onclick=()=>{if(!busy&&replayAction){q('#scene-replay').hidden=true;unselect();readout('');replayAction();q('.object-cue')?.focus({preventScroll:true});}};
-      function attach(id, onClick, canDrag=false) {
+      function attach(id, onClick, canDrag=false, onDragStart=onClick) {
         const el=item(id);
         el.onclick=()=>{if(suppressClick){suppressClick=false;return}if(!busy)onClick()};
         if(!canDrag)return;
         el.classList.add('draggable');el.setAttribute('aria-pressed','false');
         el.onpointerdown=e=>{if(busy||e.button!==0)return;drag={el,id,x:e.clientX,y:e.clientY,moved:false};el.setPointerCapture(e.pointerId)};
-        el.onpointermove=e=>{if(!drag||drag.el!==el)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.hypot(dx,dy)>8){if(!drag.moved){onClick();drag.moved=true;el.classList.add('is-dragging')}el.style.transform=`translate(${dx}px,${dy}px)`}};
-        el.onpointerup=e=>{if(!drag||drag.el!==el)return;const moved=drag.moved;el.style.transform='';el.classList.remove('is-dragging');drag=null;if(!moved)return;suppressClick=true;const target=document.elementsFromPoint(e.clientX,e.clientY).map(n=>n.closest?.('[data-object]')).find(n=>n&&n!==el&&stage.contains(n));if(target)target.click();else say('El objeto volvió a su lugar. Toca un destino o vuelve a arrastrarlo.');setTimeout(()=>{suppressClick=false},0)};
+        el.onpointermove=e=>{if(!drag||drag.el!==el)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.hypot(dx,dy)>8){if(!drag.moved){onDragStart();drag.moved=true;el.classList.add('is-dragging')}el.style.transform=`translate(${dx}px,${dy}px)`}};
+        el.onpointerup=e=>{if(!drag||drag.el!==el)return;const moved=drag.moved;el.style.transform='';el.classList.remove('is-dragging');drag=null;if(!moved)return;suppressClick=true;const target=document.elementsFromPoint(e.clientX,e.clientY).map(n=>n.closest?.('[data-object]')).find(n=>n&&n!==el&&stage.contains(n));if(target){if(target.dataset.combinable)target.dispatchEvent(new CustomEvent('objectdrop',{detail:{source:id}}));else target.click();}else say('El objeto volvió a su lugar. Toca un destino o vuelve a arrastrarlo.');setTimeout(()=>{suppressClick=false},0)};
         el.onpointercancel=()=>{el.style.transform='';el.classList.remove('is-dragging');drag=null;unselect();say('Movimiento cancelado. Puedes tocar el objeto y después su destino.')};
       }
       // Cancel propagation suppression only for the click synthesized after a drag,
@@ -81,27 +81,113 @@
         const a=item(from), b=item(to);a.classList.add('transferring');b.classList.add('receiving');
         animate(2400,p=>{q('.energy-path')?.style.setProperty('--travel',String(p));},()=>{a.classList.remove('transferring');b.classList.remove('receiving');done()});
       }
-      const namesObserver=new MutationObserver(()=>{stage.querySelectorAll('[data-object]').forEach(el=>el.setAttribute('aria-label',[el.querySelector('strong')?.textContent,el.querySelector('.object-sub')?.textContent].filter(Boolean).join('. ')))});namesObserver.observe(board,{childList:true,subtree:true,characterData:true});disposers.push(()=>namesObserver.disconnect());
+      const namesObserver=new MutationObserver(()=>{stage.querySelectorAll('[data-object]').forEach(el=>el.setAttribute('aria-label',[el.querySelector('strong')?.textContent,el.querySelector('.mix-temperature')?.textContent,el.querySelector('.object-sub')?.textContent].filter(Boolean).join('. ')))});namesObserver.observe(board,{childList:true,subtree:true,characterData:true});disposers.push(()=>namesObserver.disconnect());
       const paths='<div class="energy-path" aria-hidden="true"><span>●</span><span>●</span><span>●</span><b>→</b></div>';
       function assembly() {
         board.innerHTML='<div class="object-shelf" id="shelf"></div><div class="workbench" id="workbench"></div>';
         return {shelf:q('#shelf'),bench:q('#workbench')};
       }
       if(index===0) {
-        goal('Descubre hacia dónde viaja la energía');
-        note('Solo en el dibujo. No toques líquidos calientes. Temperaturas ilustrativas.');
-        let cold=false, finished=false;
-        function scene() {
-          finished=false;
-          board.innerHTML=`<div class="workbench">${object('cup',cold?'Vaso con hielo':'Taza caliente',cold?'ice':'cup',cold?'5 °C':'65 °C')}${paths}${object('hand','Mano del dibujo','hand','32 °C','destination')}</div>`;
-          say(cold?'Ahora toca el vaso. ¿La energía viajará en la misma dirección?':'Toca la taza para descubrir qué pasa.');cue('cup');
-          attach('cup',()=>{if(finished)return;choose('cup',`Está a ${cold?'5':'65'} °C. Acércal${cold?'o':'a'} a la mano del dibujo. ¿Quién dará energía?`);cue('hand')},true);
-          allowDestination('hand',()=>{if(finished)return;if(selected!=='cup'){say('Primero elige la taza o el vaso; después toca esta mano.');return}unselect();cue('');finished=true;
-            q('.energy-path').classList.toggle('reverse',cold);
-            say(cold?'Observa: la mano entrega energía al vaso.':'Observa: la taza entrega energía a la mano.');
-            transfer(cold?'hand':'cup',cold?'cup':'hand',()=>{readout(cold?'32 °C → 5 °C · El frío no viaja.':'65 °C → 32 °C · El calor es energía en tránsito.');say(cold?'En ambos casos, la energía pasa del cuerpo más caliente al más frío.':'Ahora prueba con hielo y compara la dirección.');replay(()=>{cold=!cold;scene()});q('#scene-replay').textContent=cold?'↺ Volver a probar':'Probar con hielo →';});
+        goal('Mezcla agua y descubre su nueva temperatura');
+        note('Solo en pantalla. Agua líquida, sin hielo. Modelo sin pérdidas al ambiente ni a los vasos; mezcla uniforme. Los colores indican temperatura.');
+        const labels=['A · Caliente al inicio','B · Ambiente al inicio','C · Frío al inicio'];
+        const initials=[70,25,10];
+        const fmt=n=>Number(n.toFixed(1)).toLocaleString('es-MX');
+        let vessels=WaterMix.initial(), lastMix=null;
+        const waterColor=t=>t===null?'#91bec5':`hsl(${200-(t-10)/60*181} 58% 63%)`;
+        function glass(i) {
+          return `<svg class="mix-glass" viewBox="0 0 160 200" aria-hidden="true"><defs><clipPath id="glass-clip-${i}"><path d="M38 40H122L114 175Q80 187 46 175Z"/></clipPath></defs><ellipse cx="80" cy="185" rx="49" ry="6" fill="#cbd7c4"/><g clip-path="url(#glass-clip-${i})"><rect x="35" y="40" width="90" height="140" fill="#ffffff85"/><path class="glass-water" fill="#89bdca"/><ellipse class="glass-surface" cx="80" cy="120" rx="46" ry="5" fill="#c9e0e3"/></g><path d="M38 40L46 175Q80 187 114 175L122 40" fill="none" stroke="#668e89" stroke-width="2.5"/><ellipse cx="80" cy="40" rx="42" ry="7" fill="none" stroke="#668e89" stroke-width="2"/><g stroke="#688a80" stroke-width="1.5"><path d="M104 70h12M102 98h12M100 126h12M98 154h12"/></g></svg>`;
+        }
+        // Approximate a horizontal liquid surface in the tilted vessel.
+        // This is visual geometry, separate from the energy-conserving mixing model.
+        function liquidShape(mass,angle=0) {
+          if(mass<=0)return '';
+          const polygon=[[38,40],[122,40],[114,175],[80,182],[46,175]];
+          const radians=angle*Math.PI/180,nx=Math.sin(radians),ny=Math.cos(radians);
+          const level=p=>nx*p[0]+ny*p[1];
+          const area=points=>Math.abs(points.reduce((sum,p,i)=>{const next=points[(i+1)%points.length];return sum+p[0]*next[1]-next[0]*p[1]},0))/2;
+          function clip(threshold){const out=[];polygon.forEach((a,i)=>{const b=polygon[(i+1)%polygon.length],da=level(a)-threshold,db=level(b)-threshold;if(da>=0)out.push(a);if((da>=0)!==(db>=0)){const t=da/(da-db);out.push([a[0]+t*(b[0]-a[0]),a[1]+t*(b[1]-a[1])]);}});return out;}
+          const desired=area(polygon)*mass/WaterMix.capacity;
+          let low=Math.min(...polygon.map(level)),high=Math.max(...polygon.map(level));
+          for(let step=0;step<24;step++){const middle=(low+high)/2;if(area(clip(middle))>desired)low=middle;else high=middle;}
+          return clip((low+high)/2).map((p,i)=>(i?'L':'M')+p.join(' ')).join(' ')+'Z';
+        }
+        function draw(i,mass,temperature,announce=true,angle=0) {
+          const el=item('water'+i),height=mass/WaterMix.capacity*135,y=178-height;
+          el.querySelector('.glass-water').setAttribute('d',liquidShape(mass,angle));
+          el.querySelector('.glass-water').setAttribute('fill',waterColor(temperature));
+          el.querySelector('.glass-surface').setAttribute('cy',y);
+          el.querySelector('.glass-surface').setAttribute('fill',waterColor(temperature));
+          el.querySelector('.glass-surface').style.opacity='0';
+          el.querySelector('.mix-temperature').textContent=mass>0?fmt(temperature)+' °C':'Vacío';
+          el.querySelector('.object-sub').textContent=fmt(mass)+' g de agua';
+          if(announce)el.setAttribute('aria-label',`${labels[i]}. ${mass>0?fmt(temperature)+' grados Celsius':'Vacío'}. ${fmt(mass)} gramos de agua.`);
+        }
+        function selectSource(i) {
+          if(!vessels[i].mass){say('Este vaso está vacío. Puedes llenarlo desde otro vaso.');return;}
+          choose('water'+i,`Origen: vaso ${'ABC'[i]}, a ${fmt(vessels[i].temperature)} °C. Toca otro vaso para verter hasta 25 g. ¿Su agua se calentará o se enfriará?`);
+          cue('');item('water'+i).classList.add('object-selected');
+        }
+        function mix(source,destination) {
+          if(busy)return;
+          if(source===destination){unselect();say('Selección cancelada. Elige un vaso de origen y otro distinto como destino.');return;}
+          let result;
+          try{result=WaterMix.pour(vessels,source,destination);}catch(error){say(error.message);return;}
+          const a={...vessels[source]},b={...vessels[destination]};
+          lastMix={source,destination,a,b,...result};
+          unselect();cue('');readout('');q('#mix-calculation').hidden=true;
+          say(`Vertemos ${fmt(result.moved)} g del vaso ${'ABC'[source]} al ${'ABC'[destination]}. Observa los niveles y la temperatura de la mezcla.`);
+          const donor=item('water'+source).querySelector('svg'),receiver=item('water'+destination).querySelector('svg');
+          const donorRect=donor.getBoundingClientRect(),targetRect=receiver.getBoundingClientRect();
+          const direction=destination>source?1:-1;
+          const dx=targetRect.x+targetRect.width/2-donorRect.x-donorRect.width/2-direction*targetRect.width*.32;
+          donor.classList.add('pouring-glass');
+          const overlay=q('#mix-stream'),stream=q('#mix-stream path');
+          function streamPath(){
+            const start=new DOMPoint(direction>0?122:38,40).matrixTransform(donor.getScreenCTM());
+            const end=new DOMPoint(80,65).matrixTransform(receiver.getScreenCTM());
+            const r=overlay.getBoundingClientRect();
+            overlay.setAttribute('viewBox',`0 0 ${r.width} ${r.height}`);
+            const x1=start.x-r.x,y1=start.y-r.y,x2=end.x-r.x,y2=end.y-r.y;
+            stream.setAttribute('d',`M${x1} ${y1} C${x1} ${y1+30},${x2} ${y2-30},${x2} ${y2}`);
+            stream.setAttribute('stroke',waterColor(a.temperature));
+          }
+          animate(3600,p=>{
+            const tilt=p<.2?p/.2:p>.8?(1-p)/.2:1;
+            donor.style.transform=`translate(${dx*tilt}px,${-65*tilt}px) rotate(${direction*105*tilt}deg)`;
+            const fraction=Math.max(0,Math.min(1,(p-.2)/.6)),moved=result.moved*fraction;
+            const targetTemperature=b.mass===0?a.temperature:(b.mass*b.temperature+moved*a.temperature)/(b.mass+moved);
+            draw(source,a.mass-moved,a.temperature,false,direction*105*tilt);
+            draw(destination,b.mass+moved,targetTemperature,false);
+            overlay.style.opacity=p>.2&&p<.8?'1':'0';
+            if(p>.2&&p<.8)streamPath();
+          },()=>{
+            donor.style.transform='';donor.classList.remove('pouring-glass');overlay.style.opacity='0';
+            vessels=result.vessels;vessels.forEach((v,i)=>draw(i,v.mass,v.temperature));
+            const original=b.mass?`antes ${fmt(b.temperature)} °C`:'antes vacío';
+            readout(`Vaso ${'ABC'[destination]}: ${fmt(result.temperature)} °C · ${fmt(vessels[destination].mass)} g (${original}).`);
+            if(!b.mass)say('El vaso estaba vacío. El agua vertida conserva su temperatura: no había otra porción de agua con la que intercambiar calor.');
+            else if(Math.abs(a.temperature-b.temperature)<1e-9)say('Las dos porciones estaban a la misma temperatura. Aumenta la cantidad de agua, pero su temperatura no cambia.');
+            else say(`La porción más caliente cede energía a la más fría. La mezcla queda a ${fmt(result.temperature)} °C; la porción más grande influye más. ${vessels[source].mass?'El agua que queda en el origen sigue a '+fmt(a.temperature)+' °C.':'El vaso de origen quedó vacío.'}`);
+            q('#mix-calculation').hidden=false;replay(reset);q('#scene-replay').textContent='↺ Recuperar los tres vasos iniciales';
           });
-        } scene();
+        }
+        function reset(){
+          vessels=WaterMix.initial();lastMix=null;
+          board.innerHTML=`<div class="mix-row">${labels.map((label,i)=>`<button type="button" class="lab-object mix-object" data-object="water${i}" data-combinable="true">${glass(i)}<strong>${label}</strong><span class="mix-temperature">${initials[i]} °C</span><span class="object-sub">100 g de agua</span></button>`).join('')}<svg id="mix-stream" aria-hidden="true"><path fill="none" stroke-width="5" stroke-linecap="round"/></svg></div><div class="mix-support"><span>Hasta 25 g por vertido · Capacidad: 250 g por vaso</span><button class="text-button" id="mix-calculation" hidden>¿De dónde sale esa temperatura? ↗</button><button class="text-button" id="mix-model">Cómo funciona este modelo ↗</button></div>`;
+          vessels.forEach((v,i)=>{
+            draw(i,v.mass,v.temperature);
+            attach('water'+i,()=>{if(selected===null)selectSource(i);else mix(Number(selected.slice(5)),i);},true,()=>selectSource(i));
+            item('water'+i).addEventListener('objectdrop',e=>{if(!busy&&e.detail.source.startsWith('water'))mix(Number(e.detail.source.slice(5)),i)});
+          });
+          say('Toca el vaso del que quieres verter agua. Después toca el vaso que la recibirá.');cue('water0');
+          q('#mix-calculation').onclick=()=>{
+            if(!lastMix)return;const {a,b,moved,temperature,source,destination}=lastMix;
+            helpers.openModal('La cantidad de agua también importa',`<p>Vertiste <b>${fmt(moved)} g a ${fmt(a.temperature)} °C</b> en el vaso ${'ABC'[destination]}, que tenía <b>${fmt(b.mass)} g${b.mass?' a '+fmt(b.temperature)+' °C':''}</b>.</p><p>Para agua líquida con el mismo calor específico, sin pérdidas:</p><p class="mix-formula">Temperatura final = (masa inicial × temperatura inicial + masa añadida × temperatura añadida) ÷ masa total</p><p><b>(${fmt(b.mass)} × ${fmt(b.mass?b.temperature:0)} + ${fmt(moved)} × ${fmt(a.temperature)}) ÷ ${fmt(b.mass+moved)} ≈ ${fmt(temperature)} °C</b></p><p>Solo sería el promedio sencillo de las dos temperaturas si las dos porciones tuvieran la misma masa. Los cálculos conservan todos los decimales; la pantalla redondea a uno.</p><p>El agua restante del vaso ${'ABC'[source]} no se mezcló. Por eso no cambia de temperatura en este modelo.</p>`);
+          };
+          q('#mix-model').onclick=()=>helpers.openModal('Un experimento con fundamento',`<p>El libro explica que el calor se transfiere de lo más caliente a lo más frío hasta el equilibrio. Aquí aplicamos esa idea a una mezcla de agua líquida.</p><p><b>Conservación de energía:</b> la energía que cede la porción más caliente la recibe la más fría. Usamos Q = m · c · ΔT, con el mismo calor específico constante para toda el agua.</p><p><b>Supuestos:</b> agua líquida entre 10 y 70 °C, sin hielo ni evaporación; mezcla uniforme; vasos de capacidad térmica despreciable; sin intercambio de calor con el ambiente. En una cocina real, esas condiciones no se cumplen exactamente.</p><p>El vaso B empieza a 25 °C, nuestra temperatura ambiente de referencia. No se mantiene automáticamente a 25 °C después de mezclar.</p><p>Verter mueve materia y su energía. El intercambio de calor ocurre entre las porciones a distinta temperatura al mezclarse. No confundas la dirección del chorro con la dirección de transferencia de calor.</p><p>La animación es ilustrativa: su duración no es tiempo físico medido. El color representa temperatura; el agua real no cambia de color.</p><p><a href="https://openstax.org/books/university-physics-volume-2/pages/1-4-heat-transfer-specific-heat-and-calorimetry" target="_blank" rel="noopener noreferrer">Fundamento: calorimetría y conservación de energía, OpenStax (inglés) ↗</a></p>`);
+        }
+        reset();
       }
       if(index===1) {
         q('.scene-footer small').textContent='Toca el recipiente; después mueve el control del calentador.';
