@@ -41,3 +41,5 @@ Los vasos comienzan con 100 g de agua líquida a 70, 25 y 10 °C. Cada acción v
 Fuente: OpenStax, University Physics Volume 2, sección 1.4, Heat Transfer, Specific Heat, and Calorimetry: https://openstax.org/books/university-physics-volume-2/pages/1-4-heat-transfer-specific-heat-and-calorimetry
 
 Pruebas: `node tests/mixing.test.cjs`. Incluyen 22 °C al agregar 25 g a 70 °C a 100 g a 10 °C; mezcla inversa a 58 °C; vaso ambiente a 34 °C; igualdad de temperaturas; vaciado, rellenado, límite de capacidad y conservación de masa y energía durante una secuencia de 400 vertidos. Verificados en navegador el vertido, su pausa, explicación del cálculo, teclado, arrastre, movimiento reducido y distribución móvil/escritorio.
+
+El vaso central se dibuja más ancho y admite 300 g; los laterales admiten 250 g. Los tres empiezan con 100 g (70, 25 y 10 °C). Al vaciar ambos laterales en el centro, quedan 300 g a 35 °C bajo los supuestos del modelo. Las pruebas comprueban tres órdenes de vertido y conservación de masa y energía.

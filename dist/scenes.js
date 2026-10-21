@@ -96,25 +96,25 @@
         let vessels=WaterMix.initial(), lastMix=null;
         const waterColor=t=>t===null?'#91bec5':`hsl(${200-(t-10)/60*181} 58% 63%)`;
         function glass(i) {
-          return `<svg class="mix-glass" viewBox="0 0 160 200" aria-hidden="true"><defs><clipPath id="glass-clip-${i}"><path d="M38 40H122L114 175Q80 187 46 175Z"/></clipPath></defs><ellipse cx="80" cy="185" rx="49" ry="6" fill="#cbd7c4"/><g clip-path="url(#glass-clip-${i})"><rect x="35" y="40" width="90" height="140" fill="#ffffff85"/><path class="glass-water" fill="#89bdca"/><ellipse class="glass-surface" cx="80" cy="120" rx="46" ry="5" fill="#c9e0e3"/></g><path d="M38 40L46 175Q80 187 114 175L122 40" fill="none" stroke="#668e89" stroke-width="2.5"/><ellipse cx="80" cy="40" rx="42" ry="7" fill="none" stroke="#668e89" stroke-width="2"/><g stroke="#688a80" stroke-width="1.5"><path d="M104 70h12M102 98h12M100 126h12M98 154h12"/></g></svg>`;
+          return `<svg class="mix-glass" viewBox="0 0 160 200" preserveAspectRatio="none" aria-hidden="true"><defs><clipPath id="glass-clip-${i}"><path d="M38 40H122L114 175Q80 187 46 175Z"/></clipPath></defs><ellipse cx="80" cy="185" rx="49" ry="6" fill="#cbd7c4"/><g clip-path="url(#glass-clip-${i})"><rect x="35" y="40" width="90" height="140" fill="#ffffff85"/><path class="glass-water" fill="#89bdca"/><ellipse class="glass-surface" cx="80" cy="120" rx="46" ry="5" fill="#c9e0e3"/></g><path d="M38 40L46 175Q80 187 114 175L122 40" fill="none" stroke="#668e89" stroke-width="2.5"/><ellipse cx="80" cy="40" rx="42" ry="7" fill="none" stroke="#668e89" stroke-width="2"/><g stroke="#688a80" stroke-width="1.5"><path d="M104 70h12M102 98h12M100 126h12M98 154h12"/></g></svg>`;
         }
         // Approximate a horizontal liquid surface in the tilted vessel.
         // This is visual geometry, separate from the energy-conserving mixing model.
-        function liquidShape(mass,angle=0) {
+        function liquidShape(mass,capacity,angle=0) {
           if(mass<=0)return '';
           const polygon=[[38,40],[122,40],[114,175],[80,182],[46,175]];
           const radians=angle*Math.PI/180,nx=Math.sin(radians),ny=Math.cos(radians);
           const level=p=>nx*p[0]+ny*p[1];
           const area=points=>Math.abs(points.reduce((sum,p,i)=>{const next=points[(i+1)%points.length];return sum+p[0]*next[1]-next[0]*p[1]},0))/2;
           function clip(threshold){const out=[];polygon.forEach((a,i)=>{const b=polygon[(i+1)%polygon.length],da=level(a)-threshold,db=level(b)-threshold;if(da>=0)out.push(a);if((da>=0)!==(db>=0)){const t=da/(da-db);out.push([a[0]+t*(b[0]-a[0]),a[1]+t*(b[1]-a[1])]);}});return out;}
-          const desired=area(polygon)*mass/WaterMix.capacity;
+          const desired=area(polygon)*mass/capacity;
           let low=Math.min(...polygon.map(level)),high=Math.max(...polygon.map(level));
           for(let step=0;step<24;step++){const middle=(low+high)/2;if(area(clip(middle))>desired)low=middle;else high=middle;}
           return clip((low+high)/2).map((p,i)=>(i?'L':'M')+p.join(' ')).join(' ')+'Z';
         }
         function draw(i,mass,temperature,announce=true,angle=0) {
-          const el=item('water'+i),height=mass/WaterMix.capacity*135,y=178-height;
-          el.querySelector('.glass-water').setAttribute('d',liquidShape(mass,angle));
+          const el=item('water'+i),height=mass/WaterMix.capacities[i]*135,y=178-height;
+          el.querySelector('.glass-water').setAttribute('d',liquidShape(mass,WaterMix.capacities[i],angle));
           el.querySelector('.glass-water').setAttribute('fill',waterColor(temperature));
           el.querySelector('.glass-surface').setAttribute('cy',y);
           el.querySelector('.glass-surface').setAttribute('fill',waterColor(temperature));
@@ -174,18 +174,18 @@
         }
         function reset(){
           vessels=WaterMix.initial();lastMix=null;
-          board.innerHTML=`<div class="mix-row">${labels.map((label,i)=>`<button type="button" class="lab-object mix-object" data-object="water${i}" data-combinable="true">${glass(i)}<strong>${label}</strong><span class="mix-temperature">${initials[i]} °C</span><span class="object-sub">100 g de agua</span></button>`).join('')}<svg id="mix-stream" aria-hidden="true"><path fill="none" stroke-width="5" stroke-linecap="round"/></svg></div><div class="mix-support"><span>Hasta 25 g por vertido · Capacidad: 250 g por vaso</span><button class="text-button" id="mix-calculation" hidden>¿De dónde sale esa temperatura? ↗</button><button class="text-button" id="mix-model">Cómo funciona este modelo ↗</button></div>`;
+          board.innerHTML=`<div class="mix-row">${labels.map((label,i)=>`<button type="button" class="lab-object mix-object" data-object="water${i}" data-combinable="true">${glass(i)}<strong>${label}</strong><span class="mix-temperature">${initials[i]} °C</span><span class="object-sub">100 g de agua</span></button>`).join('')}<svg id="mix-stream" aria-hidden="true"><path fill="none" stroke-width="5" stroke-linecap="round"/></svg></div><div class="mix-support"><span>100 g al inicio en cada vaso · Centro: capacidad de 300 g · Laterales: 250 g · Hasta 25 g por vertido</span><button class="text-button" id="mix-calculation" hidden>¿De dónde sale esa temperatura? ↗</button><button class="text-button" id="mix-model">Cómo funciona este modelo ↗</button></div>`;
           vessels.forEach((v,i)=>{
             draw(i,v.mass,v.temperature);
             attach('water'+i,()=>{if(selected===null)selectSource(i);else mix(Number(selected.slice(5)),i);},true,()=>selectSource(i));
             item('water'+i).addEventListener('objectdrop',e=>{if(!busy&&e.detail.source.startsWith('water'))mix(Number(e.detail.source.slice(5)),i)});
           });
-          say('Toca el vaso del que quieres verter agua. Después toca el vaso que la recibirá.');cue('water0');
+          say('Toca un vaso lateral y después el central para verter agua. En el centro caben los 300 g de los tres vasos.');cue('water0');
           q('#mix-calculation').onclick=()=>{
             if(!lastMix)return;const {a,b,moved,temperature,source,destination}=lastMix;
             helpers.openModal('La cantidad de agua también importa',`<p>Vertiste <b>${fmt(moved)} g a ${fmt(a.temperature)} °C</b> en el vaso ${'ABC'[destination]}, que tenía <b>${fmt(b.mass)} g${b.mass?' a '+fmt(b.temperature)+' °C':''}</b>.</p><p>Para agua líquida con el mismo calor específico, sin pérdidas:</p><p class="mix-formula">Temperatura final = (masa inicial × temperatura inicial + masa añadida × temperatura añadida) ÷ masa total</p><p><b>(${fmt(b.mass)} × ${fmt(b.mass?b.temperature:0)} + ${fmt(moved)} × ${fmt(a.temperature)}) ÷ ${fmt(b.mass+moved)} ≈ ${fmt(temperature)} °C</b></p><p>Solo sería el promedio sencillo de las dos temperaturas si las dos porciones tuvieran la misma masa. Los cálculos conservan todos los decimales; la pantalla redondea a uno.</p><p>El agua restante del vaso ${'ABC'[source]} no se mezcló. Por eso no cambia de temperatura en este modelo.</p>`);
           };
-          q('#mix-model').onclick=()=>helpers.openModal('Un experimento con fundamento',`<p>El libro explica que el calor se transfiere de lo más caliente a lo más frío hasta el equilibrio. Aquí aplicamos esa idea a una mezcla de agua líquida.</p><p><b>Conservación de energía:</b> la energía que cede la porción más caliente la recibe la más fría. Usamos Q = m · c · ΔT, con el mismo calor específico constante para toda el agua.</p><p><b>Supuestos:</b> agua líquida entre 10 y 70 °C, sin hielo ni evaporación; mezcla uniforme; vasos de capacidad térmica despreciable; sin intercambio de calor con el ambiente. En una cocina real, esas condiciones no se cumplen exactamente.</p><p>El vaso B empieza a 25 °C, nuestra temperatura ambiente de referencia. No se mantiene automáticamente a 25 °C después de mezclar.</p><p>Verter mueve materia y su energía. El intercambio de calor ocurre entre las porciones a distinta temperatura al mezclarse. No confundas la dirección del chorro con la dirección de transferencia de calor.</p><p>La animación es ilustrativa: su duración no es tiempo físico medido. El color representa temperatura; el agua real no cambia de color.</p><p><a href="https://openstax.org/books/university-physics-volume-2/pages/1-4-heat-transfer-specific-heat-and-calorimetry" target="_blank" rel="noopener noreferrer">Fundamento: calorimetría y conservación de energía, OpenStax (inglés) ↗</a></p>`);
+          q('#mix-model').onclick=()=>helpers.openModal('Un experimento con fundamento',`<p>El libro explica que el calor se transfiere de lo más caliente a lo más frío hasta el equilibrio. Aquí aplicamos esa idea a una mezcla de agua líquida.</p><p><b>Conservación de energía:</b> la energía que cede la porción más caliente la recibe la más fría. Usamos Q = m · c · ΔT, con el mismo calor específico constante para toda el agua.</p><p><b>Supuestos:</b> agua líquida entre 10 y 70 °C, sin hielo ni evaporación; mezcla uniforme; vasos de capacidad térmica despreciable; sin intercambio de calor con el ambiente. En una cocina real, esas condiciones no se cumplen exactamente.</p><p>Los tres vasos empiezan con 100 g de agua. El central es más grande: admite 300 g, así que puede recibir toda el agua de los laterales sin desbordarse. El vaso B empieza a 25 °C, nuestra temperatura ambiente de referencia. No se mantiene automáticamente a 25 °C después de mezclar.</p><p>Verter mueve materia y su energía. El intercambio de calor ocurre entre las porciones a distinta temperatura al mezclarse. No confundas la dirección del chorro con la dirección de transferencia de calor.</p><p>La animación es ilustrativa: su duración no es tiempo físico medido. El color representa temperatura; el agua real no cambia de color.</p><p><a href="https://openstax.org/books/university-physics-volume-2/pages/1-4-heat-transfer-specific-heat-and-calorimetry" target="_blank" rel="noopener noreferrer">Fundamento: calorimetría y conservación de energía, OpenStax (inglés) ↗</a></p>`);
         }
         reset();
       }
