@@ -63,6 +63,7 @@ export function mountPan(stage, noteElement, helpers) {
       : 'El mango de cobre también se calienta: prueba uno de madera.';
     say(good ? `${body === 'copper-body' ? 'El cobre conduce muy bien.' : 'El acero conduce menos que el cobre.'} La madera reduce el paso de energía hacia la mano.` : 'Conducir bien ayuda a cocinar, pero no protege la mano. Cambia el mango.');
     lock(false);
+    if (good) helpers.onSuccess?.();
     if (document.activeElement === document.body) q('#scene-replay').focus({ preventScroll: true });
   }
 

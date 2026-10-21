@@ -1,24 +1,47 @@
 // Pointer-held pouring. Only the glass follows the hand; labels stay readable.
-export function createHeldPour({ stage, reduced, canStart, onStart, onPortion, onEnd, render }) {
+export function createHeldPour({ stage, reduced, canStart, onStart, onPortion, onEnd, render, pourVisuals }) {
   const controller = new AbortController();
   const listen = (node, event, callback, options = {}) => node.addEventListener(event, callback, { ...options, signal: controller.signal });
   let held = null;
+  let returning = null;
   let frame = 0;
   let suppressed = null;
   const center = stage.querySelector('[data-object="water1"] .mix-glass');
-  const overlay = stage.querySelector('#mix-stream');
-  const stream = overlay.querySelector('path');
+
+  function settle() {
+    if (!returning) return;
+    const previous = returning;
+    returning = null;
+    cancelAnimationFrame(frame);
+    previous.glass.style.transform = '';
+    previous.glass.classList.remove('pouring-glass');
+    render(previous.index, 0);
+    onEnd();
+  }
   function finish() {
     if (!held) return;
     const previous = held;
     held = null;
     cancelAnimationFrame(frame);
-    previous.glass.style.transform = '';
-    previous.glass.classList.remove('pouring-glass');
-    overlay.style.opacity = '0';
-    render(previous.index, 0);
+    pourVisuals.stop();
     if (previous.card.hasPointerCapture(previous.id)) previous.card.releasePointerCapture(previous.id);
-    if (previous.moved) { suppressed = previous.card; onEnd(); }
+    if (!previous.moved) return;
+    suppressed = previous.card;
+    returning = previous;
+    if (reduced) { settle(); return; }
+    let started = null;
+    function returnHome(time) {
+      if (!returning) return;
+      started ??= time;
+      const progress = Math.min(1, (time - started) / 800);
+      // Smooth start and landing, with no bounce or sudden change in tilt.
+      const remaining = 1 - progress * progress * (3 - 2 * progress);
+      previous.glass.style.transform = `translate(${previous.visualX * remaining}px, ${previous.visualY * remaining}px) rotate(${previous.angle * remaining}deg)`;
+      render(previous.index, previous.angle * remaining);
+      if (progress === 1) settle();
+      else frame = requestAnimationFrame(returnHome);
+    }
+    frame = requestAnimationFrame(returnHome);
   }
   function tick(time) {
     if (!held) return;
@@ -33,23 +56,21 @@ export function createHeldPour({ stage, reduced, canStart, onStart, onPortion, o
       h.angle = reduced ? desired : h.angle + (desired - h.angle) * Math.min(1, elapsed / 90);
       const dx = active ? target.x + target.width / 2 - h.bounds.x - h.bounds.width / 2 - h.direction * target.width * .32 : h.x - h.startX;
       const dy = active ? target.top - h.bounds.top - target.height * .35 : h.y - h.startY;
-      h.glass.style.transform = `translate(${dx}px, ${dy}px) rotate(${h.angle}deg)`;
-      render(h.index, h.angle);
-      overlay.style.opacity = active ? '1' : '0';
+      const ease = reduced ? 1 : 1 - Math.exp(-elapsed / 65);
+      h.visualX += (dx - h.visualX) * ease;
+      h.visualY += (dy - h.visualY) * ease;
+      h.glass.style.transform = `translate(${h.visualX}px, ${h.visualY}px) rotate(${h.angle}deg)`;
+      render(h.index, h.angle, elapsed);
+      if(!active)pourVisuals.stop();
       if (active) {
-        const start = new DOMPoint(h.direction > 0 ? 122 : 38, 40).matrixTransform(h.glass.getScreenCTM());
-        const end = new DOMPoint(80, 65).matrixTransform(center.getScreenCTM());
-        const bounds = overlay.getBoundingClientRect();
-        overlay.setAttribute('viewBox', `0 0 ${bounds.width} ${bounds.height}`);
-        stream.setAttribute('d', `M${start.x - bounds.x} ${start.y - bounds.y} Q${end.x - bounds.x} ${start.y - bounds.y} ${end.x - bounds.x} ${end.y - bounds.y}`);
-        stream.setAttribute('stroke', h.glass.querySelector('.glass-water').getAttribute('fill'));
+        pourVisuals.paint(h.glass,center,h.direction,time/1000,reduced?1:Math.min(1,Math.abs(h.angle)/85));
         h.accumulated += elapsed;
-        while (h.accumulated >= 100 && !h.empty) {
-          h.accumulated -= 100;
+        while (h.accumulated >= 150 && !h.empty) {
+          h.accumulated -= 150;
           h.empty = !onPortion(h.index);
-          render(h.index, h.angle);
+          render(h.index, h.angle, elapsed);
         }
-        if (h.empty) overlay.style.opacity = '0';
+        if (h.empty) pourVisuals.stop();
       } else h.accumulated = 0;
     }
     frame = requestAnimationFrame(tick);
@@ -62,9 +83,9 @@ export function createHeldPour({ stage, reduced, canStart, onStart, onPortion, o
     }, { capture: true });
     listen(card, 'pointerdown', event => {
       suppressed = null;
-      if (held || event.button !== 0 || !canStart(index)) return;
+      if (held || returning || event.button !== 0 || !canStart(index)) return;
       const glass = card.querySelector('.mix-glass');
-      held = { card, glass, index, id: event.pointerId, startX: event.clientX, startY: event.clientY, x: event.clientX, y: event.clientY, bounds: glass.getBoundingClientRect(), direction: index === 0 ? 1 : -1, angle: 0, moved: false, empty: false, last: null, accumulated: 0 };
+      held = { card, glass, index, id: event.pointerId, startX: event.clientX, startY: event.clientY, x: event.clientX, y: event.clientY, bounds: glass.getBoundingClientRect(), direction: index === 0 ? 1 : -1, angle: 0, visualX: 0, visualY: 0, moved: false, empty: false, last: null, accumulated: 0 };
       card.setPointerCapture(event.pointerId);
       frame = requestAnimationFrame(tick);
     });
@@ -85,5 +106,5 @@ export function createHeldPour({ stage, reduced, canStart, onStart, onPortion, o
   listen(document, 'visibilitychange', () => { if (document.hidden) finish(); });
   listen(window, 'blur', finish);
   listen(window, 'resize', finish);
-  return () => { finish(); controller.abort(); };
+  return () => { finish(); settle(); controller.abort(); };
 }

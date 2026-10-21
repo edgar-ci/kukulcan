@@ -139,12 +139,58 @@
 /* Illustrated instrument pairs retain a clear corridor for connectors. */
 .instrument-matching{max-width:660px}
 .instrument-matching .lab-object{display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;min-height:190px}
-.instrument-matching .lab-object svg{width:100px;height:100px;flex-shrink:0}
+.instrument-matching .lab-object svg{width:160px;height:136px;flex-shrink:0;filter:none}
 .instrument-matching .lab-object strong{font-size:13px}
 .instrument-matching .object-sub{font-size:11px;margin-top:5px}
 @media(max-width:650px){
   .instrument-matching .lab-object{padding:8px 5px;min-height:180px}
-  .instrument-matching .lab-object svg{width:76px;height:80px}
+  .instrument-matching .lab-object svg{width:112px;height:100px}
   .instrument-matching .lab-object strong{font-size:11px}
   .instrument-matching .object-sub{font-size:10px}
 }
+
+/* Glassware: transparent center, fine reflections and contact ripples. */
+.mix-object .mix-glass{filter:drop-shadow(0 8px 5px #47666b12)}
+.mix-object .mix-temperature{font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+.mix-object[data-object="water1"] .mix-temperature{color:#365d68}
+.mix-object .glass-ripples{opacity:0}
+.mix-object .glass-ripples{stroke:#77adba;stroke-width:1.1}
+
+/* The checkpoint belongs to the experiment, not to the reading column. */
+.experiment{position:relative}
+.below{grid-template-columns:1fr}
+.below .explanation{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(240px,1fr);align-items:start;gap:16px}
+.explanation-reading{display:grid;gap:16px;min-width:0}
+.explanation-card{min-width:0;border:1px solid var(--line);border-radius:16px;background:#fffdf8}
+.explanation-idea{padding:26px 28px;border-top:3px solid var(--orange)}
+.explanation-idea .eyebrow{color:#6b5345;font-size:10px;letter-spacing:1.5px}
+.explanation-idea h2{font-size:clamp(21px,2vw,27px);line-height:1.25;letter-spacing:-.6px;margin:12px 0}
+.explanation p{font-size:15px;line-height:1.75;max-width:65ch;margin:0}
+.explanation details{font-size:15px;line-height:1.75;margin:0}
+.explanation-science summary{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:64px;padding:16px 24px;list-style:none;border-radius:15px;font-weight:600}
+.explanation-science summary::-webkit-details-marker{display:none}
+.explanation-science summary:hover{background:var(--mint)}
+.science-toggle{display:grid;place-items:center;flex-shrink:0;width:28px;height:28px;border:1px solid #bdcdbb;border-radius:50%;font-size:21px;line-height:1;color:var(--ink)}
+.explanation-science[open] .science-toggle{transform:rotate(45deg)}
+.explanation-science[open] summary{border-radius:15px 15px 0 0;border-bottom:1px solid var(--line);background:#f1f5ec}
+.explanation-science p{padding:20px 24px 24px}
+.explanation-resources{padding:24px;background:#eef3e9}
+.explanation-resources h2{margin:0 0 18px;font-size:18px;letter-spacing:-.3px}
+.explanation-resources .curiosity{margin:0;padding:18px;background:#fff3df;border-color:#e5cda6;border-radius:10px;font-size:16px;font-weight:600;line-height:1.5;min-height:44px}
+.explanation-resources .curiosity span{color:#77582c;letter-spacing:1.2px;line-height:1.6}
+.explanation-resources .text-button{display:block;width:100%;text-align:left;min-height:44px;margin-top:14px;padding:12px 0 0;color:var(--ink);border-top:1px solid #ccd8c7;border-radius:0;font-size:13px;line-height:1.6}
+@media(max-width:1000px){.below .explanation{grid-template-columns:1fr}}
+@media(max-width:650px){.explanation-idea,.explanation-resources{padding:22px 20px}.explanation-science summary{padding:16px 20px}.explanation-science p{padding:18px 20px 22px}}
+.exercise-reopen{display:block;margin:8px 20px 0 auto}
+.exercise-overlay{position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:20px;background:#edf3e9d9;backdrop-filter:blur(4px);border-radius:inherit}
+.exercise-overlay-card{position:relative;width:100%;max-width:470px;max-height:min(650px,80vh);overflow:auto;padding:32px;background:#fffdf6;border:1px solid #b8cbb6;border-radius:20px;box-shadow:0 18px 50px #22483a25;animation:checkpoint-in 220ms ease-out}
+.exercise-overlay-card h2{font-size:25px;line-height:1.2;letter-spacing:-.6px;margin:14px 20px 14px 0}
+.exercise-overlay-card p{font-size:14px;line-height:1.6}
+.exercise-overlay-close{position:absolute;right:10px;top:10px;background:transparent;color:var(--ink);padding:10px;min-width:40px;min-height:40px}
+.exercise-congrats{text-align:center}
+.exercise-congrats h2{margin-right:0;font-size:32px}
+.congrats-seal{display:grid;place-items:center;width:64px;height:64px;margin:0 auto 18px;border-radius:50%;background:#dcebd2;color:#365d42;font-size:32px;animation:checkpoint-in 300ms ease-out}
+.exercise-congrats .text-button{display:block;margin:12px auto 0}
+.congrats-note{color:var(--muted)}
+@keyframes checkpoint-in{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+@media(max-width:650px){.exercise-overlay{padding:12px}.exercise-overlay-card{padding:28px 18px 20px}.exercise-overlay-card h2{font-size:22px}.exercise-overlay-card .answer{min-height:44px}}

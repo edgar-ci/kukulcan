@@ -1,5 +1,10 @@
 import { test, expect } from '@playwright/test';
 
+// Checkpoint behavior is covered in exercise-overlay.spec.js.
+test.beforeEach(async ({ page }) => {
+  await page.addLocatorHandler(page.getByRole('button', { name: 'Cerrar reto' }), async button => { await button.click(); });
+});
+
 async function selectTemperature(page, temperature) {
   await page.locator('#water-temperature').fill(String(temperature));
 }
@@ -111,6 +116,7 @@ test('particle design preserves molecule size and pauses spheres, lattice and tr
   expect(await spheres.evaluateAll(nodes => nodes.every(node => node.getAttribute('r') === '5.5'))).toBe(true);
   await page.locator('.phase-card').screenshot({ path: 'test-results/particles-moving.png' });
   await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(page.locator('#scene-pause')).toBeHidden();
   for (const temperature of [-20, 25, 120]) {
     await selectTemperature(page, temperature);
     const staticFrame = await page.locator('.phase-particles svg').innerHTML();

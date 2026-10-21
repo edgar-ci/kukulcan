@@ -7,6 +7,7 @@ async function start(page, mission = 3) {
   await page.locator(`[data-mission="${mission}"]`).click();
 }
 async function dragTo(page, source, target) {
+  await card(page, source).evaluate(element => element.scrollIntoView({ block: 'start', behavior: 'instant' }));
   const a = await card(page, source).boundingBox();
   const b = target ? await card(page, target).boundingBox() : { x: 5, y: 5, width: 0, height: 0 };
   await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2);
@@ -33,6 +34,7 @@ test('click and keyboard connect only equivalent cards, retain colors and reset'
   const colors = await lines(page).evaluateAll(elements => elements.map(el => el.getAttribute('stroke')));
   expect(new Set(colors).size).toBe(3);
   await expect(page.locator('#scene-readout')).toContainText('3 de 3');
+  await page.getByRole('button', { name: 'Cerrar reto' }).click();
   await expect(page.locator('#scene-replay')).toBeFocused();
   await page.locator('#scene-replay').click();
   await expect(lines(page)).toHaveCount(0);
@@ -132,6 +134,7 @@ test('instruments use images, reject wrong pairs, connect by drag and keyboard, 
     await page.keyboard.press('Enter');
   }
   await expect(lines(page)).toHaveCount(3);
+  await page.getByRole('button', { name: 'Cerrar reto' }).click();
   await expect(page.locator('#scene-replay')).toBeFocused();
   await page.screenshot({ path: 'test-results/instruments-desktop.png', fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });

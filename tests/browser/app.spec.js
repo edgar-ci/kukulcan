@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { completeExperiment } from './complete-experiment.js';
 import { LESSONS, FINAL_QUIZ } from '../../src/data/content.js';
 
 test('all missions, challenges, final quiz and saved progress work', async ({ page }) => {
@@ -9,8 +10,13 @@ test('all missions, challenges, final quiz and saved progress work', async ({ pa
     await page.locator(`[data-mission="${index}"]`).click();
     await expect(page.locator('h1')).toHaveText(LESSONS[index].title);
     await expect(page.locator('#scene-goal')).not.toBeEmpty();
+    await expect(page.locator('.challenge')).toHaveCount(0);
+    await completeExperiment(page, index);
+    await expect(page.getByRole('dialog')).toContainText('PONLO A PRUEBA');
     await page.locator('.challenge .answer').nth(LESSONS[index].answer).click();
+    await expect(page.getByRole('dialog')).toContainText('¡Lo lograste!');
     await expect(page.locator('#progress-label')).toHaveText(`${index + 1} de 7 completadas`);
+    await page.getByRole('button', { name: 'Seguir experimentando', exact: true }).click();
   }
   await page.reload();
   await expect(page.locator('#progress-label')).toHaveText('7 de 7 completadas');
@@ -58,6 +64,7 @@ test('reference dialogs, converter and sorting remain interactive', async ({ pag
 });
 
 test('mixing, particle keyboard control and navigation during animation', async ({ page }) => {
+  await page.addLocatorHandler(page.getByRole('button', { name: 'Cerrar reto' }), async button => { await button.click(); });
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');

@@ -1,5 +1,10 @@
 import { test, expect } from '@playwright/test';
 
+// Checkpoint behavior is covered in exercise-overlay.spec.js.
+test.beforeEach(async ({ page }) => {
+  await page.addLocatorHandler(page.getByRole('button', { name: 'Cerrar reto' }), async button => { await button.click(); });
+});
+
 const object = (page, id) => page.locator(`[data-object="${id}"]`);
 const placed = (page, target, source) => page.locator(`[data-placement="${target}"] [data-object="${source}"]`);
 async function move(page, source, destination) {

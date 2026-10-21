@@ -1,0 +1,50 @@
+import { test, expect } from '@playwright/test';
+import { completeExperiment } from './complete-experiment.js';
+
+test('checkpoint stays in the exercise, supports retry, dismiss, reopen and congratulations', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('[data-mission="5"]').click();
+  await expect(page.locator('.challenge')).toHaveCount(0);
+  await page.locator('[data-object="unit0"]').click();
+  await page.locator('[data-object="match1"]').click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await completeExperiment(page, 5);
+  const overlay = page.getByRole('dialog');
+  await expect(overlay).toBeFocused();
+  await expect(page.locator('.experiment .challenge')).toBeVisible();
+  await overlay.locator('.answer').nth(0).click();
+  await expect(page.locator('#feedback')).toContainText('Puedes intentarlo otra vez');
+  await expect(page.locator('#progress-label')).toContainText('0 de 7');
+  await page.keyboard.press('Escape');
+  await expect(overlay).toHaveCount(0);
+  await page.getByRole('button', { name: 'Responder el reto' }).click();
+  await page.locator('#hint').click();
+  await expect(page.locator('#feedback')).not.toBeEmpty();
+  await overlay.locator('.answer').nth(1).click();
+  await expect(overlay).toContainText('¡Lo lograste!');
+  await expect(overlay).toBeFocused();
+  await expect(page.locator('#progress-label')).toContainText('1 de 7');
+  await overlay.getByRole('button', { name: 'Siguiente misión' }).click();
+  await expect(page.locator('[data-mission="6"]')).toHaveAttribute('aria-current', 'step');
+  await expect(overlay).toHaveCount(0);
+});
+
+test('mobile overlay fits and reopening does not reset the experiment', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await page.locator('[data-mission="3"]').click();
+  await completeExperiment(page, 3);
+  await page.screenshot({ path: 'test-results/checkpoint-mobile.png', fullPage: true });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.getByRole('button', { name: 'Cerrar reto' }).click();
+  await expect(page.locator('.connector-line')).toHaveCount(3);
+  await page.getByRole('button', { name: 'Responder el reto' }).click();
+  await page.locator('.challenge .answer').nth(2).click();
+  await page.screenshot({ path: 'test-results/congrats-mobile.png', fullPage: true });
+  await page.getByRole('button', { name: 'Seguir experimentando', exact: true }).click();
+  await page.locator('#scene-replay').click();
+  await expect(page.locator('.connector-line')).toHaveCount(0);
+  await completeExperiment(page, 3);
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.locator('#progress-label')).toContainText('1 de 7');
+});

@@ -5,7 +5,7 @@ const name = (index) => String.fromCharCode(65 + index);
 // Slow illustrative heat exchange so color changes are easier to observe.
 const animationTimeScale = 1 / 3;
 
-export function mountBlocks(stage, noteElement) {
+export function mountBlocks(stage, noteElement, helpers = {}) {
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   let temperatures = [...initialTemperatures];
   let stack = [];
@@ -111,6 +111,7 @@ export function mountBlocks(stage, noteElement) {
   function finish(average) {
     stack.forEach((index) => { temperatures[index] = average; });
     settled = true;
+    helpers.onSuccess?.();
     paint();
     q('#stack-state').textContent = 'Misma temperatura, mismo color';
     q('#stack-description').textContent = 'Ya no hay transferencia neta de calor. Las partículas siguen moviéndose. Añade otro bloque para cambiar el equilibrio.';

@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { mountScene } from '../simulations/scenes.js';
 
 // The animation engine owns only these two leaf nodes, never React's UI.
-export default function Experiment({ index, helpers }) {
+export default function Experiment({ index, helpers, blocked = false, action, children }) {
   const stage = useRef(null);
   const note = useRef(null);
 
@@ -27,7 +27,11 @@ export default function Experiment({ index, helpers }) {
 
   return <section className="experiment" aria-label="Experimento interactivo">
     <div className="lab-head"><span><i className="live-dot" /> MESA DE EXPERIMENTOS</span><span>0{index + 1} — OBSERVA QUÉ CAMBIA</span></div>
-    <div className="stage" id="stage" ref={stage} />
-    <p className="model-note" id="model-note" ref={note} />
+    {action}
+    <div inert={blocked}>
+      <div className="stage" id="stage" ref={stage} />
+      <p className="model-note" id="model-note" ref={note} />
+    </div>
+    {children}
   </section>;
 }

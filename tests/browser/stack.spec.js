@@ -1,5 +1,10 @@
 import { test, expect } from '@playwright/test';
 
+// Checkpoint behavior is covered in exercise-overlay.spec.js.
+test.beforeEach(async ({ page }) => {
+  await page.addLocatorHandler(page.getByRole('button', { name: 'Cerrar reto' }), async button => { await button.click(); });
+});
+
 const block = (page, index) => page.locator(`[data-block="${index}"]`);
 const temperature = async (page, index) => Number(await block(page, index).getAttribute('data-temperature'));
 
