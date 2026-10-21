@@ -1,6 +1,5 @@
 /* Ideal liquid-water mixing: constant specific heat, no heat loss or phase change.
    Mass is in grams. Temperature is in Celsius. Empty vessels have null temperature. */
-(function (root) {
   const capacities = Object.freeze([250,300,250]);
   const portion = 25;
   function initial() {
@@ -20,7 +19,4 @@
     next[destination]={mass:b.mass+moved,temperature};
     return {vessels:next,moved,temperature};
   }
-  const api={initial,pour,capacities,portion};
-  if(typeof module!=='undefined'&&module.exports)module.exports=api;
-  else root.WaterMix=api;
-})(globalThis);
+export { initial,pour,capacities,portion };

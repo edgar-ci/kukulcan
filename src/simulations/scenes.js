@@ -1,7 +1,13 @@
 /* Interactive scenes: all actions support touch selection and keyboard.
    Combining objects also supports pointer dragging, including touch screens. */
-(() => {
-  let cleanup = () => {};
+import { createHeldPour } from './heldPour.js';
+import * as WaterMix from './mixing.js';
+import * as WaterParticles from './particles.js';
+import { mountBlocks } from './blocks.js';
+import { mountPan } from './pan.js';
+import { createCardPlacement } from './cardPlacement.js';
+import { createMatchingConnectors } from './matchingConnectors.js';
+
   const icons = {
     cup: '<path d="M107 58h17c35 0 35 46 0 46h-17" fill="none" stroke="#bb7652" stroke-width="11"/><path d="M35 56h80l-6 65q-34 17-68 0Z" fill="#e9a379" stroke="#a76e4c" stroke-width="2"/><ellipse cx="75" cy="56" rx="40" ry="10" fill="#705345"/><g fill="none" stroke="#899c91" stroke-width="3"><path d="M62 37q-8-8 0-17t0-16M85 37q-8-8 0-17t0-16"/></g>',
     ice: '<path d="M39 38h76l-9 96H48Z" fill="#a3d5df" stroke="#528a99" stroke-width="3"/><path d="M44 77h66l-5 54H49Z" fill="#70b4ca"/><g fill="#effdff" stroke="#79b5c5"><rect x="54" y="66" width="24" height="24" rx="5" transform="rotate(-12 66 78)"/><rect x="77" y="83" width="25" height="25" rx="5" transform="rotate(14 90 96)"/></g>',
@@ -22,22 +28,30 @@
     token: '<rect x="27" y="31" width="106" height="98" rx="17" fill="#f8e8cf" stroke="#b69b74" stroke-width="3"/><path d="M57 80h46m-23-23v46" stroke="#d7b37d" stroke-width="4"/>'
   };
   const picture = kind => `<svg viewBox="0 0 165 160" aria-hidden="true" focusable="false">${icons[kind] || icons.token}</svg>`;
-  window.HeatScenes = {
-    destroy() { cleanup(); cleanup = () => {}; },
-    mount(index, helpers) {
-      this.destroy();
-      const stage = document.getElementById('stage');
+export function mountScene(index, stage, noteElement, helpers) {
+      if (index === 2) return mountBlocks(stage, noteElement);
+      if (index === 6) return mountPan(stage, noteElement, helpers);
+      let cleanup = () => {};
       stage.className = 'stage play-stage';
       const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
       let selected = null, busy = false, frame = 0, paused = false, alive = true;
       let replayAction = null, suppressClick = false, drag = null, elapsed = 0, last = 0;
       const disposers = [];
+      const placement = createCardPlacement(stage, reduced);
+      disposers.push(placement.dispose);
+      let dropOrigin = null;
+      function placeCard(source, target, done) {
+        busy = true;
+        unselect();
+        cue('');
+        placement.place(source, target, dropOrigin, () => { busy = false; done(); });
+      }
       stage.innerHTML = `<div class="scene-goal"><span>EXPLORA CON LAS MANOS</span><strong id="scene-goal"></strong></div><div class="scene-bubble" id="scene-bubble" role="status" aria-live="polite"></div><div class="scene-board" id="scene-board"></div><div class="scene-readout" id="scene-readout" aria-live="polite"></div><div class="scene-footer"><small>Toca un objeto y su destino, o arrástralo.</small><button id="scene-pause" class="text-button" hidden>Ⅱ Pausar</button><button id="scene-replay" class="text-button" hidden>↺ Volver a probar</button></div>`;
       const q = s => stage.querySelector(s), board = q('#scene-board');
       const goal = msg => q('#scene-goal').textContent = msg;
       const say = msg => q('#scene-bubble').textContent = msg;
       const readout = msg => q('#scene-readout').textContent = msg;
-      const note = msg => document.getElementById('model-note').textContent = msg;
+      const note = msg => noteElement.textContent = msg;
       const cue = id => { stage.querySelectorAll('.object-cue').forEach(e=>e.classList.remove('object-cue')); q(`[data-object="${id}"]`)?.classList.add('object-cue'); };
       function object(id, label, kind, sub = '', extra = '') {
         return `<button type="button" class="lab-object ${extra}" data-object="${id}" aria-label="${label}${sub?'. '+sub:''}">${picture(kind)}<strong>${label}</strong><span class="object-sub">${sub}</span></button>`;
@@ -58,7 +72,26 @@
         el.classList.add('draggable');el.setAttribute('aria-pressed','false');
         el.onpointerdown=e=>{if(busy||e.button!==0)return;drag={el,id,x:e.clientX,y:e.clientY,moved:false};el.setPointerCapture(e.pointerId)};
         el.onpointermove=e=>{if(!drag||drag.el!==el)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.hypot(dx,dy)>8){if(!drag.moved){onDragStart();drag.moved=true;el.classList.add('is-dragging')}el.style.transform=`translate(${dx}px,${dy}px)`}};
-        el.onpointerup=e=>{if(!drag||drag.el!==el)return;const moved=drag.moved;el.style.transform='';el.classList.remove('is-dragging');drag=null;if(!moved)return;suppressClick=true;const target=document.elementsFromPoint(e.clientX,e.clientY).map(n=>n.closest?.('[data-object]')).find(n=>n&&n!==el&&stage.contains(n));if(target){if(target.dataset.combinable)target.dispatchEvent(new CustomEvent('objectdrop',{detail:{source:id}}));else target.click();}else say('El objeto volvió a su lugar. Toca un destino o vuelve a arrastrarlo.');setTimeout(()=>{suppressClick=false},0)};
+        el.onpointerup = e => {
+          if (!drag || drag.el !== el) return;
+          const moved = drag.moved;
+          const origin = el.getBoundingClientRect();
+          el.style.transform = '';
+          el.classList.remove('is-dragging');
+          drag = null;
+          if (!moved) return;
+          suppressClick = true;
+          const target = document.elementsFromPoint(e.clientX, e.clientY)
+            .map(n => n.closest?.('.placement-target')?.querySelector('[data-object]') || n.closest?.('[data-object]'))
+            .find(n => n && n !== el && stage.contains(n));
+          dropOrigin = origin;
+          if (target) {
+            if (target.dataset.combinable) target.dispatchEvent(new CustomEvent('objectdrop', { detail: { source: id } }));
+            else target.click();
+          } else say('El objeto volvió a su lugar. Toca un destino o vuelve a arrastrarlo.');
+          dropOrigin = null;
+          setTimeout(() => { suppressClick = false; }, 0);
+        };
         el.onpointercancel=()=>{el.style.transform='';el.classList.remove('is-dragging');drag=null;unselect();say('Movimiento cancelado. Puedes tocar el objeto y después su destino.')};
       }
       // Cancel propagation suppression only for the click synthesized after a drag,
@@ -94,6 +127,8 @@
         const initials=[70,25,10];
         const fmt=n=>Number(n.toFixed(1)).toLocaleString('es-MX');
         let vessels=WaterMix.initial(), lastMix=null;
+        let disposeHeldPour = () => {};
+        disposers.push(() => disposeHeldPour());
         const waterColor=t=>t===null?'#91bec5':`hsl(${200-(t-10)/60*181} 58% 63%)`;
         function glass(i) {
           return `<svg class="mix-glass" viewBox="0 0 160 200" preserveAspectRatio="none" aria-hidden="true"><defs><clipPath id="glass-clip-${i}"><path d="M38 40H122L114 175Q80 187 46 175Z"/></clipPath></defs><ellipse cx="80" cy="185" rx="49" ry="6" fill="#cbd7c4"/><g clip-path="url(#glass-clip-${i})"><rect x="35" y="40" width="90" height="140" fill="#ffffff85"/><path class="glass-water" fill="#89bdca"/><ellipse class="glass-surface" cx="80" cy="120" rx="46" ry="5" fill="#c9e0e3"/></g><path d="M38 40L46 175Q80 187 114 175L122 40" fill="none" stroke="#668e89" stroke-width="2.5"/><ellipse cx="80" cy="40" rx="42" ry="7" fill="none" stroke="#668e89" stroke-width="2"/><g stroke="#688a80" stroke-width="1.5"><path d="M104 70h12M102 98h12M100 126h12M98 154h12"/></g></svg>`;
@@ -173,14 +208,47 @@
           });
         }
         function reset(){
+          disposeHeldPour();
           vessels=WaterMix.initial();lastMix=null;
-          board.innerHTML=`<div class="mix-row">${labels.map((label,i)=>`<button type="button" class="lab-object mix-object" data-object="water${i}" data-combinable="true">${glass(i)}<strong>${label}</strong><span class="mix-temperature">${initials[i]} °C</span><span class="object-sub">100 g de agua</span></button>`).join('')}<svg id="mix-stream" aria-hidden="true"><path fill="none" stroke-width="5" stroke-linecap="round"/></svg></div><div class="mix-support"><span>100 g al inicio en cada vaso · Centro: capacidad de 300 g · Laterales: 250 g · Hasta 25 g por vertido</span><button class="text-button" id="mix-calculation" hidden>¿De dónde sale esa temperatura? ↗</button><button class="text-button" id="mix-model">Cómo funciona este modelo ↗</button></div>`;
+          board.innerHTML=`<div class="mix-row">${labels.map((label,i)=>`<button type="button" class="lab-object mix-object" data-object="water${i}" data-combinable="true">${glass(i)}<strong>${label}</strong><span class="mix-temperature">${initials[i]} °C</span><span class="object-sub">100 g de agua</span></button>`).join('')}<svg id="mix-stream" aria-hidden="true"><path fill="none" stroke-width="5" stroke-linecap="round"/></svg></div><div class="mix-support"><span>100 g al inicio en cada vaso · Centro: capacidad de 300 g · Laterales: 250 g · Al sostener: 10 g cada 100 ms · Al tocar: hasta 25 g</span><button class="text-button" id="mix-calculation" hidden>¿De dónde sale esa temperatura? ↗</button><button class="text-button" id="mix-model">Cómo funciona este modelo ↗</button></div>`;
           vessels.forEach((v,i)=>{
             draw(i,v.mass,v.temperature);
-            attach('water'+i,()=>{if(selected===null)selectSource(i);else mix(Number(selected.slice(5)),i);},true,()=>selectSource(i));
+            attach('water'+i,()=>{if(selected===null)selectSource(i);else mix(Number(selected.slice(5)),i);});
             item('water'+i).addEventListener('objectdrop',e=>{if(!busy&&e.detail.source.startsWith('water'))mix(Number(e.detail.source.slice(5)),i)});
           });
-          say('Toca un vaso lateral y después el central para verter agua. En el centro caben los 300 g de los tres vasos.');cue('water0');
+          disposeHeldPour = createHeldPour({
+            stage, reduced,
+            canStart: i => !busy && vessels[i].mass > 0,
+            onStart(i) {
+              busy = true; unselect(); cue(''); readout('');
+              q('#mix-calculation').hidden = true;
+              lastMix = { source: i, destination: 1, a: { ...vessels[i] }, b: { ...vessels[1] }, moved: 0 };
+              say('Mantén el vaso cerca del central para verter. Aléjalo o suéltalo para detenerte.');
+            },
+            onPortion(i) {
+              if (!vessels[i].mass || vessels[1].mass >= WaterMix.capacities[1]) return false;
+              const result = WaterMix.pour(vessels, i, 1, 10);
+              vessels = result.vessels;
+              lastMix.moved += result.moved;
+              lastMix.temperature = result.temperature;
+              draw(1, vessels[1].mass, vessels[1].temperature);
+              readout(`Vaso B: ${fmt(vessels[1].temperature)} °C · ${fmt(vessels[1].mass)} g`);
+              return vessels[i].mass > 0 && vessels[1].mass < WaterMix.capacities[1];
+            },
+            render(i, angle) { draw(i, vessels[i].mass, vessels[i].temperature, true, angle); },
+            onEnd() {
+              busy = false;
+              vessels.forEach((v, i) => draw(i, v.mass, v.temperature));
+              if (lastMix?.moved) {
+                q('#mix-calculation').hidden = false;
+                say(`Vertiste ${fmt(lastMix.moved)} g. La mezcla está a ${fmt(vessels[1].temperature)} °C. Puedes seguir mezclando.`);
+                replay(reset);
+                q('#scene-replay').textContent = '↺ Recuperar los tres vasos iniciales';
+              } else say('Acerca un vaso lateral al central y mantenlo ahí para verter.');
+            },
+          });
+          say('Sostén un vaso lateral y acércalo al central: verterás 10 g cada 100 ms. También puedes tocar dos vasos para verter 25 g.');cue('water0');
+          q('.scene-footer small').textContent = 'Sostén cerca del centro para verter; aleja o suelta para parar. Escape cancela el agarre.';
           q('#mix-calculation').onclick=()=>{
             if(!lastMix)return;const {a,b,moved,temperature,source,destination}=lastMix;
             helpers.openModal('La cantidad de agua también importa',`<p>Vertiste <b>${fmt(moved)} g a ${fmt(a.temperature)} °C</b> en el vaso ${'ABC'[destination]}, que tenía <b>${fmt(b.mass)} g${b.mass?' a '+fmt(b.temperature)+' °C':''}</b>.</p><p>Para agua líquida con el mismo calor específico, sin pérdidas:</p><p class="mix-formula">Temperatura final = (masa inicial × temperatura inicial + masa añadida × temperatura añadida) ÷ masa total</p><p><b>(${fmt(b.mass)} × ${fmt(b.mass?b.temperature:0)} + ${fmt(moved)} × ${fmt(a.temperature)}) ÷ ${fmt(b.mass+moved)} ≈ ${fmt(temperature)} °C</b></p><p>Solo sería el promedio sencillo de las dos temperaturas si las dos porciones tuvieran la misma masa. Los cálculos conservan todos los decimales; la pantalla redondea a uno.</p><p>El agua restante del vaso ${'ABC'[source]} no se mezcló. Por eso no cambia de temperatura en este modelo.</p>`);
@@ -192,31 +260,111 @@
       if(index===1) {
         WaterParticles.mount({board,q,goal,note,say,readout,animate,reduced,helpers});
       }
-      if(index===2) {
-        goal('Encuentra la pareja que llegue a 50 °C');note('Bloques con igual capacidad térmica, sin pérdidas. La temperatura final es el promedio.');
-        function scene(){const {shelf,bench}=assembly();shelf.innerHTML=[40,60,80].map(t=>object('b'+t,'Bloque a '+t+' °C','block','Elige una pareja')).join('');bench.innerHTML=`${object('target','Bloque a 20 °C','coldBlock','Destino','destination')}<div class="pair-result"><span id="pair-hot">¿?</span><span>⇄</span><span id="pair-cold">20 °C</span></div>`;say('Elige un bloque. Después tócalo con el bloque azul. ¿Cuál llegará a 50 °C?');cue('b40');[40,60,80].forEach(t=>attach('b'+t,()=>{choose('b'+t,`Elegiste ${t} °C. Toca el bloque azul para unirlos.`);cue('target')},true));allowDestination('target',()=>{if(!selected){say('Elige primero uno de los tres bloques de arriba.');return}const t=Number(selected.slice(1)),mean=(t+20)/2;unselect();cue('');say('Se están acercando a una misma temperatura…');animate(2600,p=>{q('#pair-hot').textContent=(t+(mean-t)*p).toFixed(1)+' °C';q('#pair-cold').textContent=(20+(mean-20)*p).toFixed(1)+' °C'},()=>{const win=mean===50;readout(`${win?'✓ Objetivo conseguido.':'Esta pareja llega a '+mean+' °C.'} (${t} + 20) ÷ 2 = ${mean} °C`);say(win?'Ambos están a 50 °C: ya no hay transferencia neta de calor.':'La energía se conserva. Prueba con otra pareja para llegar a 50 °C.');replay(scene)});});}scene();
-      }
       if(index===3) {
         goal('Encuentra tres parejas de energía');note('Se usa la aproximación del libro: 1 cal ≈ 4.187 J.');
         const pairs=[['1 kcal','1 000 cal','1 × 1 000 = 1 000 cal.'],['2 kcal','2 000 cal','2 × 1 000 = 2 000 cal.'],['1 cal','≈ 4.187 J','Una caloría equivale aproximadamente a 4.187 joules.']];
-        function scene(){let matched=new Set();board.innerHTML=`<div class="matching-grid"><div class="matching-column">${pairs.map((p,i)=>object('unit'+i,p[0],'token','Selecciona')).join('')}</div><div class="matching-column">${[2,0,1].map(i=>object('match'+i,pairs[i][1],'token','Su equivalente','destination')).join('')}</div></div><div class="secondary-tools"><button id="explore-calorimeter" class="illustrated-tool">${picture('calorimeter')}<span>Explora el calorímetro ↗</span></button><button id="converter" class="text-button">Abrir conversor ↗</button></div>`;say('Toca 1 kcal y busca la ficha que representa la misma energía.');cue('unit0');pairs.forEach((p,i)=>{attach('unit'+i,()=>{if(matched.has(i))return;choose('unit'+i,`${p[0]}: toca o arrastra hacia su equivalente.`);cue('')},true);allowDestination('match'+i,()=>{if(!selected){say('Selecciona primero una ficha de la izquierda.');return}const chosen=+selected.slice(4);if(chosen!==i){say('Todavía no coinciden. Recuerda: 1 kcal = 1 000 cal y 1 cal ≈ 4.187 J.');return}matched.add(i);unselect();item('unit'+i).disabled=true;item('match'+i).disabled=true;item('unit'+i).classList.add('matched');item('match'+i).classList.add('matched');say(p[2]);readout(`${matched.size} de 3 parejas encontradas`);if(matched.size===3){say('¡Las tres parejas representan la misma energía con distintas unidades!');replay(scene)}else cue('unit'+[0,1,2].find(n=>!matched.has(n)));});});q('#converter').onclick=()=>{helpers.openModal('Conversor de energía','<label>Energía <input id="energy" type="number" min="0" max="1000000" step="any" value="1"></label> <label>Unidad <select id="unit"><option>cal</option><option>kcal</option><option>J</option></select></label><p id="conversion-result" role="status"></p><p>Usamos 4.187 J/cal, la aproximación del libro.</p>');const update=()=>{const input=document.getElementById('energy'),n=Number(input.value),unit=document.getElementById('unit').value,out=document.getElementById('conversion-result');if(!input.value||!Number.isFinite(n)||n<0||n>1e6){out.textContent='Escribe un número entre 0 y 1 000 000.';return}const cal=unit==='J'?n/4.187:unit==='kcal'?n*1000:n;const fmt=x=>x.toLocaleString('es-MX',{maximumFractionDigits:4});out.textContent=`${fmt(cal)} cal = ${fmt(cal/1000)} kcal ≈ ${fmt(cal*4.187)} J`};document.getElementById('energy').oninput=update;document.getElementById('unit').onchange=update;update()};q('#explore-calorimeter').onclick=()=>{helpers.openModal('Explora el calorímetro',`<div class="calorimeter-explorer">${['Recipiente aislante','Termómetro','Agitador'].map((n,i)=>`<button class="lab-object" data-part="${i}">${picture(['calorimeter','liquid','stir'][i])}<strong>${n}</strong></button>`).join('')}</div><p id="part-description" role="status">Toca una parte para descubrir su función.</p>`);document.querySelectorAll('[data-part]').forEach(b=>b.onclick=()=>document.getElementById('part-description').textContent=['El recipiente reduce el intercambio de calor con el exterior.','El termómetro registra cambios de temperatura. Con la cantidad de materia y sus propiedades, podemos determinar la energía intercambiada.','El agitador ayuda a distribuir la temperatura dentro del recipiente.'][+b.dataset.part])};}scene();
+        let disposeConnectors = () => {};
+        disposers.push(() => disposeConnectors());
+        function scene() {
+          disposeConnectors();
+          const matched = new Set();
+          board.innerHTML = `<div class="matching-grid"><div class="matching-column">${pairs.map((p,i)=>object('unit'+i,p[0],'token','Selecciona')).join('')}</div><div class="matching-column">${[2,0,1].map(i=>object('match'+i,pairs[i][1],'token','Su equivalente','destination')).join('')}</div></div><div class="secondary-tools"><button id="explore-calorimeter" class="illustrated-tool">${picture('calorimeter')}<span>Explora el calorímetro ↗</span></button><button id="converter" class="text-button">Abrir conversor ↗</button></div>`;
+          say('Toca una ficha de la izquierda y su equivalente, o arrastra entre ellas para conectarlas.');
+          cue('unit0');
+          disposeConnectors = createMatchingConnectors({
+            grid: q('.matching-grid'), reduced,
+            onSelect(i) {
+              choose('unit'+i, `${pairs[i][0]}: toca o arrastra hacia su equivalente.`);
+              pairs.forEach((_, n) => item('unit'+n).setAttribute('aria-pressed', String(n === i)));
+              cue('');
+            },
+            onCancel() { unselect(); say('Conexión cancelada. Selecciona una ficha para volver a intentar.'); },
+            onConnect(chosen, i) {
+              if (chosen === null) { say('Selecciona primero una ficha de la izquierda.'); return false; }
+              if (chosen !== i) { say('Todavía no coinciden. Recuerda: 1 kcal = 1 000 cal y 1 cal ≈ 4.187 J.'); return false; }
+              matched.add(i);
+              unselect();
+              ['unit', 'match'].forEach(prefix => {
+                item(prefix+i).disabled = true;
+                item(prefix+i).classList.add('matched');
+              });
+              say(pairs[i][2]);
+              readout(`${matched.size} de 3 parejas encontradas`);
+              if (matched.size === 3) {
+                say('¡Las tres parejas representan la misma energía con distintas unidades!');
+                replay(scene);
+              } else {
+                const next = 'unit'+[0,1,2].find(n => !matched.has(n));
+                cue(next);
+                item(next).focus({ preventScroll: true });
+              }
+              return true;
+            },
+          });
+          q('#converter').onclick = helpers.openConverter;
+          q('#explore-calorimeter').onclick = () => helpers.openCalorimeter(['calorimeter','liquid','stir'].map(picture));
+        }
+        scene();
       }
       if(index===4) {
         goal('Protege uno y compara qué ocurre');note('Ambiente a 20 °C. Comparación ilustrativa, sin tiempo físico real. El aislamiento reduce pérdidas.');
         let covered=null,finished=false;
-        function scene(){finished=false;covered=null;const {shelf,bench}=assembly();shelf.innerHTML=object('coat','Funda aislante','coat','Colócala en un recipiente');bench.innerHTML=`${object('left','Recipiente A','jar','80 °C','destination')}${object('clock','Observar el paso del tiempo','clock','Primero coloca la funda')}${object('right','Recipiente B','jar','80 °C','destination')}`;say('Toca la funda y el recipiente que quieres proteger.');cue('coat');attach('coat',()=>{choose('coat','Toca el recipiente A o B. ¿Cuál conservará mejor su temperatura?');cue('')},true);['left','right'].forEach(id=>allowDestination(id,()=>{if(selected!=='coat'){say('Selecciona la funda antes de tocar un recipiente.');return}covered=id;finished=false;unselect();['left','right'].forEach(n=>{item(n).classList.toggle('insulated',n===id);item(n).querySelector('.object-sub').textContent='80 °C'});readout('');say('La funda está colocada. Toca el reloj para comparar.');cue('clock')}));attach('clock',()=>{if(!covered){say('Primero coloca la funda en uno de los recipientes.');return}if(finished){say('Mueve la funda al otro recipiente para repetir.');return}unselect();cue('');say('Los dos se enfrían. Observa cuál pierde energía más lentamente.');animate(3600,p=>{['left','right'].forEach(id=>item(id).querySelector('.object-sub').textContent=(20+60*Math.exp(-p*(id===covered?1.4:6))).toFixed(1)+' °C')},()=>{finished=true;readout('Con funda: 34.8 °C · Sin funda: 20.1 °C');say('El aislamiento frena la pérdida de energía. Mueve la funda al otro recipiente para comprobarlo.');replay(scene)});});}scene();
+        function scene(){finished=false;covered=null;const {shelf,bench}=assembly();shelf.innerHTML=object('coat','Funda aislante','coat','Colócala en un recipiente');bench.innerHTML=`${object('left','Recipiente A','jar','80 °C','destination')}${object('clock','Observar el paso del tiempo','clock','Primero coloca la funda')}${object('right','Recipiente B','jar','80 °C','destination')}`;placement.prepare(['coat'], ['left', 'right']);say('Toca la funda y el recipiente que quieres proteger.');cue('coat');attach('coat',()=>{choose('coat','Toca el recipiente A o B. ¿Cuál conservará mejor su temperatura?');cue('')},true);['left','right'].forEach(id=>allowDestination(id,()=>{if(selected!=='coat'){say('Selecciona la funda antes de tocar un recipiente.');return}placeCard('coat',id,()=>{covered=id;finished=false;['left','right'].forEach(n=>{item(n).classList.toggle('insulated',n===id);item(n).querySelector('.object-sub').textContent='80 °C'});readout('');say('La funda está colocada. Toca el reloj para comparar.');cue('clock')})}));attach('clock',()=>{if(!covered){say('Primero coloca la funda en uno de los recipientes.');return}if(finished){say('Mueve la funda al otro recipiente para repetir.');return}unselect();cue('');say('Los dos se enfrían. Observa cuál pierde energía más lentamente.');animate(3600,p=>{['left','right'].forEach(id=>item(id).querySelector('.object-sub').textContent=(20+60*Math.exp(-p*(id===covered?1.4:6))).toFixed(1)+' °C')},()=>{finished=true;readout('Con funda: 34.8 °C · Sin funda: 20.1 °C');say('El aislamiento frena la pérdida de energía. Mueve la funda al otro recipiente para comprobarlo.');replay(scene)});});}scene();
       }
-      if(index===5) {
-        goal('Elige el instrumento para cada encargo');note('Rangos ficticios de estos instrumentos didácticos. En la realidad, consulta el fabricante.');
-        const jobs=[['Temperatura corporal','Necesitas medir 37 °C con un instrumento de uso corporal.','clinical'],['Agua de laboratorio','Necesitas medir agua a 70 °C con un termómetro de inmersión.','liquid'],['Proceso industrial','Necesitas medir un proceso a 180 °C.','probe']];
-        const tools=[['clinical','Clínico digital','Uso corporal · 32 a 43 °C'],['liquid','Líquido en tubo','Inmersión · 0 a 100 °C'],['probe','Sonda industrial','Proceso industrial · 0 a 300 °C']];let job=0;
-        function scene(){const {shelf,bench}=assembly();shelf.innerHTML=tools.map(t=>object(t[0],t[1],t[0],t[2])).join('');bench.innerHTML=object('job',jobs[job][0],['hand','jar','stove'][job],jobs[job][1],'destination job-target');say(`Encargo ${job+1} de 3. Toca un instrumento para conocer su uso y rango.`);cue(tools[0][0]);tools.forEach(t=>attach(t[0],()=>{choose(t[0],`${t[1]}: ${t[2]}. Colócalo sobre el encargo si es adecuado.`);cue('job')},true));allowDestination('job',()=>{if(!selected){say('Primero toca un instrumento para ver su rango y su uso.');return}if(selected!==jobs[job][2]){say('Revisa tanto el rango como el uso previsto. Este encargo necesita otro instrumento.');return}unselect();cue('');readout(`✓ Encargo ${job+1} resuelto: ${tools[job][1]}.`);say(job===2?'Elegiste los tres instrumentos según su uso y rango.':'Ese instrumento es adecuado por su uso y rango. Vamos al siguiente encargo.');stage.querySelectorAll('[data-object]').forEach(b=>b.disabled=true);replay(()=>{job=(job+1)%3;scene()});q('#scene-replay').textContent=job===2?'↺ Volver a probar':'Siguiente encargo →';});}scene();
+      if (index === 5) {
+        goal('Conecta cada instrumento con su encargo');
+        note('Rangos ficticios de estos instrumentos didácticos. En la realidad, consulta el fabricante.');
+        const tools = [
+          ['clinical', 'Clínico digital', 'Uso corporal · 32 a 43 °C'],
+          ['liquid', 'Líquido en tubo', 'Inmersión · 0 a 100 °C'],
+          ['probe', 'Sonda industrial', 'Proceso industrial · 0 a 300 °C'],
+        ];
+        const jobs = [
+          ['hand', 'Temperatura corporal', 'Medir 37 °C · Uso corporal'],
+          ['jar', 'Agua de laboratorio', 'Medir 70 °C · Inmersión'],
+          ['stove', 'Proceso industrial', 'Medir 180 °C · Industria'],
+        ];
+        let disposeConnectors = () => {};
+        disposers.push(() => disposeConnectors());
+        function scene() {
+          disposeConnectors();
+          const matched = new Set();
+          board.innerHTML = `<div class="matching-grid instrument-matching"><div class="matching-column">${tools.map((tool, i) => object('unit'+i, tool[1], tool[0], tool[2])).join('')}</div><div class="matching-column">${[2, 0, 1].map(i => object('match'+i, jobs[i][1], jobs[i][0], jobs[i][2], 'destination')).join('')}</div></div>`;
+          q('.scene-footer small').textContent = 'Toca un instrumento y su encargo, o arrastra para conectarlos.';
+          say('Une las imágenes de los instrumentos con sus encargos. Fíjate en el uso y el rango.');
+          cue('unit0');
+          disposeConnectors = createMatchingConnectors({
+            grid: q('.matching-grid'), reduced,
+            onSelect(i) {
+              choose('unit'+i, `${tools[i][1]}: ${tools[i][2]}. Conéctalo con el encargo adecuado.`);
+              tools.forEach((_, n) => item('unit'+n).setAttribute('aria-pressed', String(n === i)));
+              cue('');
+            },
+            onCancel() { unselect(); say('Conexión cancelada. Selecciona un instrumento para volver a intentar.'); },
+            onConnect(chosen, i) {
+              if (chosen === null) { say('Selecciona primero un instrumento de la izquierda.'); return false; }
+              if (chosen !== i) { say('Revisa tanto el rango como el uso previsto. Este encargo necesita otro instrumento.'); return false; }
+              matched.add(i);
+              unselect();
+              ['unit', 'match'].forEach(prefix => {
+                item(prefix+i).disabled = true;
+                item(prefix+i).classList.add('matched');
+              });
+              readout(`${matched.size} de 3 encargos resueltos`);
+              say(`${tools[i][1]} es adecuado para ${jobs[i][1].toLowerCase()} por su uso y rango.`);
+              if (matched.size === 3) {
+                say('¡Conectaste los tres instrumentos según su uso y rango!');
+                replay(scene);
+              } else {
+                const next = 'unit'+[0, 1, 2].find(n => !matched.has(n));
+                cue(next);
+                item(next).focus({ preventScroll: true });
+              }
+              return true;
+            },
+          });
+        }
+        scene();
       }
-      if(index===6) {
-        goal('Construye una sartén que cocine y proteja');note('Modelo cualitativo. El cobre conduce más que el acero; la madera dificulta que el calor llegue a la mano.');
-        let body=null,handle=null,finished=false;
-        function scene(){body=null;handle=null;finished=false;const {shelf,bench}=assembly();shelf.innerHTML=object('copper-body','Cuerpo de cobre','pan','Buen conductor')+object('steel-body','Cuerpo de acero','pan','Conductor')+object('wood-handle','Mango de madera','handle','Baja conductividad')+object('copper-handle','Mango de cobre','handle','Alta conductividad');bench.innerHTML=`${object('body','Coloca el cuerpo','pan','Destino','destination')}${object('handle','Coloca el mango','handle','Destino','destination')}${object('stove','Probar en el fogón','stove','Completa tu sartén')}`;board.insertAdjacentHTML('beforeend','<button class="text-button" id="compare-materials">Consultar los ocho materiales ↗</button>');q('#compare-materials').onclick=helpers.materialsModal;say('Toca un cuerpo y colócalo en su silueta. Luego elige un mango.');cue('copper-body');['copper-body','steel-body','wood-handle','copper-handle'].forEach(id=>attach(id,()=>{choose(id,id.endsWith('body')?'Coloca esta pieza en la silueta del cuerpo.':'Coloca esta pieza en la silueta del mango.');cue(id.endsWith('body')?'body':'handle')},true));['body','handle'].forEach(dest=>allowDestination(dest,()=>{if(!selected||!selected.endsWith(dest)){say(`Elige una pieza para el ${dest==='body'?'cuerpo':'mango'} y colócala aquí.`);return}if(dest==='body')body=selected;else handle=selected;item(dest).querySelector('strong').textContent=item(selected).querySelector('strong').textContent;item(dest).querySelector('.object-sub').textContent='Pieza colocada ✓';item(dest).classList.add('assembled');item(dest).classList.toggle('copper',selected.startsWith('copper'));item(dest).classList.toggle('steel',selected.startsWith('steel'));unselect();finished=false;['body','handle'].forEach(n=>{item(n).classList.remove('heating');item(n).style.removeProperty('--heat')});readout('');say(body&&handle?'La sartén está lista. Toca el fogón para probarla.':'Ahora elige la pieza que falta.');cue(body&&handle?'stove':body?'wood-handle':'copper-body')}));attach('stove',()=>{if(!body||!handle){say('Completa el cuerpo y el mango antes de probar.');return}if(finished){say('Puedes cambiar una pieza o volver a probar.');return}cue('');say('La energía pasa del fogón al cuerpo y de ahí hacia el mango.');animate(2600,p=>{item('body').style.setProperty('--heat',p);item('handle').style.setProperty('--heat',handle==='copper-handle'?p:p*.12);item('body').classList.add('heating');item('handle').classList.add('heating')},()=>{finished=true;const good=handle==='wood-handle';readout(good?'✓ El cuerpo conduce y el mango dificulta el paso del calor.':'El mango de cobre también se calienta: prueba uno de madera.');say(good?(body==='copper-body'?'El cobre conduce muy bien. La madera reduce el paso de energía hacia la mano.':'El acero también sirve para el cuerpo, aunque conduce menos que el cobre. La madera dificulta que el calor llegue a la mano.'):'Conducir bien ayuda a cocinar, pero no protege la mano. Cambia el mango.');replay(scene)});});}scene();
-      }
-    }
-  };
-})();
+      return cleanup;
+}

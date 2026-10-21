@@ -10,4 +10,141 @@
 /* Wider center vessel: 300 g capacity versus 250 g at either side. */
 .mix-row{grid-template-columns:1fr 1.2fr 1fr}.mix-object[data-object="water1"] .mix-glass{width:182.4px}@media(max-width:650px){.mix-object[data-object="water1"] .mix-glass{width:120px}}
 
-.phase-lab{display:grid;grid-template-columns:minmax(150px,.8fr) minmax(230px,1.2fr);gap:18px;padding:12px 0}.phase-eyebrow{font-size:9px;letter-spacing:1.6px;color:#56736a;font-weight:700}.phase-sample{text-align:center;align-self:center}.phase-sample>svg{display:block;width:100%;max-width:240px;margin:auto;height:210px}.phase-sample>strong{font:600 21px 'Space Grotesk',sans-serif;display:block}.phase-sample>p{font-size:12px;line-height:1.5;margin:8px auto;max-width:220px}.phase-card{background:#fffdf5;border:1px solid #cbd7c5;border-radius:18px;padding:18px;min-width:0}.phase-card h3{font-size:17px;margin:8px 0;min-height:42px}.phase-card p{font-size:12px;line-height:1.6;min-height:76px;margin:10px 0}.phase-particles{display:block;border:0;background:#edf3e9;border-radius:12px;width:100%;padding:0 0 9px;color:#416558;cursor:pointer}.phase-particles svg{width:100%;height:175px;display:block}.phase-particles span{font-size:10px}.phase-motion{display:block;font-size:10px;color:#6a7e72;line-height:1.5}.phase-control{grid-column:1/-1;background:#fffcf2;border:1px solid #d3ddca;border-radius:16px;padding:20px 24px}.phase-control-heading{display:flex;justify-content:space-between;align-items:center;gap:12px}.phase-control label{font-size:13px;font-weight:600}.phase-control output{font:600 26px 'Space Grotesk',sans-serif;white-space:nowrap}.thermometer-range{position:relative;margin:16px 0 0 12px;padding-left:14px;--temperature-position:32.14%}.thermometer-bulb{position:absolute;left:-12px;top:10px;width:28px;height:28px;border-radius:50%;background:#71b9d3;border:4px solid #fcfaf0;box-shadow:0 0 0 1px #86a899;z-index:1}.thermometer-range input{appearance:none;-webkit-appearance:none;display:block;width:100%;height:48px;background:transparent;margin:0;cursor:ew-resize;touch-action:pan-y}.thermometer-range input::-webkit-slider-runnable-track{height:18px;border-radius:12px;background:linear-gradient(90deg,#64accb,#b6d9dd 30%,#edc58d 65%,#da7046);border:3px solid #fcfaf0;box-shadow:0 0 0 1px #86a899}.thermometer-range input::-moz-range-track{height:12px;border-radius:12px;background:linear-gradient(90deg,#64accb,#b6d9dd 30%,#edc58d 65%,#da7046);border:3px solid #fcfaf0}.thermometer-range input::-webkit-slider-thumb{appearance:none;width:28px;height:36px;border-radius:10px;background:#fffdf5;border:3px solid #315e50;box-shadow:0 2px 6px #213b2730;margin-top:-12px}.thermometer-range input::-moz-range-thumb{width:23px;height:30px;border-radius:10px;background:#fffdf5;border:3px solid #315e50}.thermometer-range input:focus-visible{outline:3px solid #527966;outline-offset:4px;border-radius:15px}.temperature-ticks{position:relative;height:22px;margin:0 14px 0 40px;font-size:9px;color:#61786b}.temperature-ticks span{position:absolute;transform:translateX(-50%);white-space:nowrap}.temperature-ends{display:flex;justify-content:space-between;font-size:11px;color:#54796c}.phase-control p{font-size:12px;line-height:1.6}.phase-control #phase-boundary{font-size:11px;color:#60766a;background:#edf1e5;border-radius:9px;padding:10px}.phase-control .text-button{font-size:11px;text-align:left;padding:4px 0}.phase-lab [id^="phase-"]{transition:opacity .2s}@media(max-width:650px){.phase-lab{grid-template-columns:1fr;gap:12px}.phase-sample{display:grid;grid-template-columns:105px 1fr;align-items:center;text-align:left;gap:0 10px}.phase-sample>svg{grid-row:1/5;width:105px;height:125px;grid-column:1}.phase-sample>.phase-eyebrow{grid-column:2}.phase-sample>strong{font-size:20px}.phase-sample>p{margin:5px 0;max-width:none}.phase-card{padding:14px}.phase-card h3,.phase-card p{min-height:0}.phase-particles svg{height:155px}.phase-control{padding:16px}.phase-card{grid-row:2}.phase-control-heading output{font-size:24px}.temperature-ticks{font-size:8px}}@media(prefers-reduced-motion:reduce){.phase-lab [id^="phase-"]{transition:none}}
+.phase-lab{display:grid;grid-template-columns:minmax(150px,.8fr) minmax(230px,1.2fr);gap:18px;padding:12px 0}.phase-eyebrow{font-size:9px;letter-spacing:1.6px;color:#56736a;font-weight:700}.phase-sample{text-align:center;align-self:center}.phase-sample>svg{display:block;width:100%;max-width:280px;margin:auto;height:auto}.phase-sample>strong{font:600 21px 'Space Grotesk',sans-serif;display:block}.phase-sample>p{font-size:12px;line-height:1.5;margin:8px auto;max-width:220px}.phase-card{background:#fffdf5;border:1px solid #cbd7c5;border-radius:18px;padding:18px;min-width:0}.phase-card h3{font-size:17px;margin:8px 0;min-height:42px}.phase-card p{font-size:12px;line-height:1.6;min-height:60px;margin:10px 0 0}.phase-particles{display:block;border:1px solid var(--particle-border,#c5dcd5);background:radial-gradient(ellipse at 45% 35%,var(--particle-glow,#f5fcf9),var(--particle-background,#e2efea));border-radius:16px;width:100%;padding:4px 0 10px;color:#416558;cursor:pointer;box-shadow:inset 0 2px 7px #376d6810}.phase-particles:hover{border-color:var(--particle-body,#7faeab)}.phase-particles:focus-visible{outline:3px solid #527966;outline-offset:4px}.phase-particles svg{width:100%;height:220px;display:block}.phase-particles span{font-size:10px}.phase-control{grid-column:1/-1;background:#fffcf2;border:1px solid #d3ddca;border-radius:16px;padding:20px 24px}.phase-control-heading{display:flex;justify-content:space-between;align-items:center;gap:12px}.phase-control label{font-size:13px;font-weight:600}.phase-control output{font:600 26px 'Space Grotesk',sans-serif;white-space:nowrap}.thermometer-range{position:relative;margin:16px 0 0 12px;padding-left:14px;--temperature-position:32.14%}.thermometer-bulb{position:absolute;left:-12px;top:10px;width:28px;height:28px;border-radius:50%;background:#71b9d3;border:4px solid #fcfaf0;box-shadow:0 0 0 1px #86a899;z-index:1}.thermometer-range input{appearance:none;-webkit-appearance:none;display:block;width:100%;height:48px;background:transparent;margin:0;cursor:ew-resize;touch-action:pan-y}.thermometer-range input::-webkit-slider-runnable-track{height:18px;border-radius:12px;background:linear-gradient(90deg,#64accb,#b6d9dd 30%,#edc58d 65%,#da7046);border:3px solid #fcfaf0;box-shadow:0 0 0 1px #86a899}.thermometer-range input::-moz-range-track{height:12px;border-radius:12px;background:linear-gradient(90deg,#64accb,#b6d9dd 30%,#edc58d 65%,#da7046);border:3px solid #fcfaf0}.thermometer-range input::-webkit-slider-thumb{appearance:none;width:28px;height:36px;border-radius:10px;background:#fffdf5;border:3px solid #315e50;box-shadow:0 2px 6px #213b2730;margin-top:-12px}.thermometer-range input::-moz-range-thumb{width:23px;height:30px;border-radius:10px;background:#fffdf5;border:3px solid #315e50}.thermometer-range input:focus-visible{outline:3px solid #527966;outline-offset:4px;border-radius:15px}.temperature-ticks{position:relative;height:22px;margin:0 14px 0 40px;font-size:9px;color:#61786b}.temperature-ticks span{position:absolute;transform:translateX(-50%);white-space:nowrap}.temperature-ends{display:flex;justify-content:space-between;font-size:11px;color:#54796c}.phase-control p{font-size:12px;line-height:1.6}.phase-control #phase-boundary{font-size:11px;color:#60766a;background:#edf1e5;border-radius:9px;padding:10px}.phase-control .text-button{font-size:11px;text-align:left;padding:4px 0}@media(max-width:650px){.phase-lab{grid-template-columns:1fr;gap:12px}.phase-sample{display:grid;grid-template-columns:minmax(140px,.9fr) minmax(0,1fr);align-items:center;text-align:left;gap:0 10px}.phase-sample>svg{grid-row:1/5;width:100%;height:auto;grid-column:1}.phase-sample>.phase-eyebrow{grid-column:2}.phase-sample>strong{font-size:20px}.phase-sample>p{margin:5px 0;max-width:none}.phase-card{padding:14px}.phase-card h3,.phase-card p{min-height:0}.phase-particles svg{height:auto;aspect-ratio:320/210}.phase-control{padding:16px}.phase-card{grid-row:2}.phase-control-heading output{font-size:24px}.temperature-ticks{font-size:8px}}@media(prefers-reduced-motion:reduce){.phase-lab [id^="phase-"]{transition:none}}
+
+/* Stackable equal-capacity blocks: SVG faces share a temperature color scale. */
+.stack-shelf{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;min-height:115px;padding:10px 0 18px;border-bottom:1px dashed #b9cbb6;align-items:start}
+.thermal-block{padding:4px 2px;background:transparent;color:var(--ink);border:2px solid transparent;border-radius:10px;min-width:0;width:100%;touch-action:none;cursor:grab}
+.thermal-block:hover{background:#ffffff70;filter:none;border-color:#96b0a0}
+.thermal-block.block-selected{border-color:var(--orange);background:#fff2d9;box-shadow:0 0 0 2px #efbf7e55}
+.thermal-block svg{display:block;width:100%;max-width:none;height:auto;overflow:visible;pointer-events:none;filter:drop-shadow(0 4px 2px #35594b12)}
+.thermal-block svg .block-name{font-size:10px;font-weight:700;letter-spacing:1.2px;fill:#173c41}
+.thermal-block svg .block-temperature{font-size:24px;font-weight:700;fill:#173c41;font-variant-numeric:tabular-nums}
+.block-origin{display:block;font-size:10px;font-weight:400;color:#486458;margin-top:5px}
+.stack-workspace{display:grid;grid-template-columns:minmax(190px,1fr) minmax(160px,.85fr);gap:26px;align-items:center;padding:28px 0 18px}
+.stack-platform{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-height:310px;padding-bottom:20px}
+.stack-tower{width:220px;max-width:100%;display:flex;flex-direction:column-reverse;align-items:center;isolation:isolate}
+.stack-tower .thermal-block{width:220px;max-width:100%;padding:0;border:0;border-radius:0;position:relative;cursor:pointer}
+.stack-tower .thermal-block+.thermal-block{margin-bottom:-30px}
+.stack-tower .thermal-block:hover{background:none;filter:brightness(1.04)}
+.stack-tower .block-origin{display:none}
+.stack-target{font-size:11px;color:#426656;border:1px dashed #769782;background:#eff5e8cc;min-height:46px;margin:14px 0 0;padding:8px 12px;max-width:100%}
+.stack-target.awaiting-block{border:2px dashed var(--orange);background:#fff0db}
+.stack-target:disabled{opacity:.5}
+.stack-base{position:absolute;bottom:6px;height:5px;border-radius:50%;width:90%;background:#a7b8a466}
+.stack-observation{padding:20px;border:1px solid #cddbc6;background:#f9faf2d9;border-radius:14px}
+.stack-observation>.eyebrow{font-size:9px;line-height:1.5;display:block}
+.stack-observation>strong{display:block;font-family:'Space Grotesk',sans-serif;font-size:19px;line-height:1.25;margin:12px 0}
+.stack-observation p{font-size:12px;line-height:1.65;margin:0 0 18px}
+.stack-observation small{font-size:10px;color:#536c5d;display:block}
+.stack-observation .outline{width:100%;font-size:11px;padding:10px 6px;margin-top:20px}
+.stack-legend{display:flex;align-items:center;gap:8px;font-size:10px;margin-bottom:8px;white-space:nowrap}
+.stack-legend i{height:7px;border-radius:20px;flex:1;background:linear-gradient(90deg,rgb(112,184,211),rgb(234,133,96))}
+.thermal-block.block-dragging{opacity:.3}
+.thermal-block.block-ghost{position:fixed;z-index:100;width:180px;pointer-events:none;margin:0;opacity:.9;filter:drop-shadow(0 8px 8px #18392c44)}
+@media(max-width:650px){
+  .stack-shelf{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;min-height:105px}
+  .stack-workspace{grid-template-columns:1fr;gap:12px;padding-top:12px}
+  .stack-platform{min-height:180px}
+  .stack-observation{padding:16px}
+  .stack-observation>strong{font-size:18px;margin:8px 0}
+  .stack-observation p{margin-bottom:12px}
+  .stack-observation .outline{margin-top:12px}
+  .stack-lab .scene-readout{font-size:12px}
+}
+
+.stack-shelf:empty{display:none}
+
+/* Persistent spaces and compact cards placed beneath their destination. */
+.object-home{width:145px;min-width:90px;max-width:100%;flex-shrink:1;align-self:stretch;border-radius:18px}
+.object-shelf .object-home>.lab-object{width:100%;height:100%}
+.object-home-empty{border:2px dashed #bacbb780;background:#ffffff26}
+.placement-target{width:155px;min-width:0;max-width:100%;flex-shrink:1;align-self:stretch;display:flex;flex-direction:column}
+.placement-target>.lab-object{width:100%;padding-bottom:30px}
+.placement-slot{position:relative;z-index:1;min-height:94px;margin-top:-16px}
+.placement-job{width:420px}
+.lab-object.placed-card{display:grid;grid-template-columns:36px minmax(0,1fr);gap:2px 7px;width:100%;min-width:0;padding:9px 8px;text-align:left;background:#fffaf0;border:1px solid #b8c8a8;border-radius:12px;box-shadow:0 4px 0 #b7c8a84d}
+.lab-object.placed-card svg{width:36px;height:45px;grid-row:span 2;filter:none}
+.lab-object.placed-card strong{font-size:11px}
+.lab-object.placed-card .object-sub{font-size:10px;margin:0;min-height:0}
+.placement-target>.lab-object:disabled,.lab-object.placed-card:disabled{opacity:1}
+.lab-object.placement-in-flight{visibility:hidden}
+.lab-object.placement-ghost{position:fixed;z-index:1000;pointer-events:none;min-width:0;max-width:none;margin:0;transform-origin:top left;background:#fffaf0;border:1px solid #b8c8a8;box-shadow:0 14px 22px #18363826;transition:none}
+@media(max-width:650px){
+  .object-shelf .object-home{width:30%;min-width:85px}
+  .placement-target{width:120px}
+  .placement-job{width:100%;max-width:340px}
+  .placement-slot{min-height:105px}
+  .lab-object.placed-card{grid-template-columns:27px minmax(0,1fr);padding:8px 5px;gap:2px 5px}
+  .lab-object.placed-card svg{width:27px;height:39px}
+  .lab-object.placed-card strong{font-size:10px}
+  .lab-object.placed-card .object-sub{font-size:9px}
+}
+
+/* Mission 07: one continuous assembly, above a quiet illustrated burner. */
+.pan-lab .object-shelf{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.pan-lab .object-shelf .object-home,.pan-lab .object-shelf .lab-object{width:100%;min-width:0}
+.pan-lab .object-shelf .lab-object svg{width:130px;height:80px}
+.pan-workspace{position:relative;margin:12px auto 0;max-width:600px}
+.pan-scene{display:block;width:100%;height:auto;overflow:visible}
+.pan-empty{--pan-side:#bac5b1;--pan-rim:#bac5b1;--pan-inside:#bac5b1;--pan-handle:#bac5b1;--pan-grain:#bac5b1;opacity:.42}
+.pan-empty path,.pan-empty rect,.pan-empty ellipse{fill:#aab9a2;stroke:none}
+.pan-empty path[fill="none"]{display:none}
+.pan-targets{position:absolute;inset:8% 7% auto 14%;display:grid;grid-template-columns:1fr 1fr;gap:8%}
+.pan-targets>div{min-width:0}
+.pan-lab .pan-targets .placement-target{width:100%;max-width:none}
+.pan-lab .pan-targets .destination{width:100%;height:120px;padding:0;justify-content:flex-end;border:1px dashed #879b7b66;background:transparent;border-radius:22px}
+.pan-lab .pan-targets .destination:hover{background:#ffffff25;border-color:#879b7b}
+.pan-lab .pan-targets .destination strong{padding:2px 8px;background:#f5f5e5df;border-radius:8px}
+.pan-lab .pan-targets .destination .object-sub{margin:0;font-size:10px}
+.pan-lab .pan-targets .placement-slot{min-height:0;margin:5px 0 0}
+.pan-lab .pan-targets .placed-card{display:block;text-align:center;padding:3px;background:#fffdf2e8;border:0;box-shadow:none}
+.pan-lab .pan-targets .placed-card svg,.pan-lab .pan-targets .placed-card .object-sub{display:none}
+.pan-lab[data-phase="assembling"] .pan-targets,.pan-lab[data-phase="moving"] .pan-targets,.pan-lab[data-phase="heating"] .pan-targets,.pan-lab[data-phase="returning"] .pan-targets{visibility:hidden}
+.pan-lab[data-phase="result"] .pan-targets{top:0}
+.pan-lab[data-phase="result"] .pan-targets .destination{height:40px}
+.pan-lab[data-phase="result"] .pan-targets .destination .object-sub{font-size:0}
+.pan-lab[data-phase="result"] .pan-targets .destination .object-sub:after{content:'Cambiar pieza';font-size:10px}
+.pan-flames{opacity:0;transition:opacity .25s}
+.pan-burning .pan-flames{opacity:1}
+.pan-flame{transform-box:fill-box;transform-origin:50% 100%}
+.pan-burning .pan-flame{animation:pan-flicker .9s ease-in-out infinite alternate}
+@keyframes pan-flicker{0%{transform:scale(.94,.88) rotate(-3deg);opacity:.85}100%{transform:scale(1.06,1.06) rotate(3deg);opacity:1}}
+.pan-lab #compare-materials{display:block;margin:0 auto 16px}
+.pan-lab button:focus-visible{outline:3px solid #996329;outline-offset:3px}
+@media(max-width:650px){
+  .pan-lab .object-shelf{grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
+  .pan-lab .object-shelf .lab-object{padding:5px;min-width:0}
+  .pan-lab .object-shelf .lab-object svg{height:58px}
+  .pan-lab .object-shelf .object-home{min-width:0;width:100%}
+  .pan-targets{inset:4% 4% auto 7%;gap:4%}
+  .pan-lab .pan-targets .destination{height:85px;border-radius:14px}
+  .pan-lab .pan-targets .placed-card strong{font-size:9px}
+  .pan-lab .pan-targets .placement-slot{min-height:0}
+}
+@media(prefers-reduced-motion:reduce){.pan-flames{transition:none}.pan-burning .pan-flame{animation:none}}
+
+/* Exercise 04: fixed cards with colored, anchored connections. */
+.matching-grid{position:relative;gap:76px;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.stage .matching-connectors{position:absolute;inset:0;width:100%;height:100%;max-width:none;pointer-events:none;overflow:visible;z-index:2}
+.matching-connectors path{fill:none;stroke-width:3;stroke-linecap:round}
+.connector-preview{stroke-dasharray:6 5;opacity:.8}
+.matching-column .connector-source{touch-action:none;user-select:none}
+.connector-source::before,.has-connector::before{content:'';position:absolute;top:50%;width:10px;height:10px;border-radius:50%;background:var(--connector-color);border:2px solid var(--paper);transform:translateY(-50%);z-index:3}
+.connector-source::before{right:-6px}
+.has-connector::before{left:-6px}
+.matching-column .connector-source.object-selected{border-color:var(--connector-color);box-shadow:0 0 0 2px var(--connector-color)}
+@media(max-width:650px){.matching-grid{gap:46px}.matching-column .lab-object{column-gap:4px}.matching-column .lab-object strong{font-size:11px}}
+
+/* Illustrated instrument pairs retain a clear corridor for connectors. */
+.instrument-matching{max-width:660px}
+.instrument-matching .lab-object{display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;min-height:190px}
+.instrument-matching .lab-object svg{width:100px;height:100px;flex-shrink:0}
+.instrument-matching .lab-object strong{font-size:13px}
+.instrument-matching .object-sub{font-size:11px;margin-top:5px}
+@media(max-width:650px){
+  .instrument-matching .lab-object{padding:8px 5px;min-height:180px}
+  .instrument-matching .lab-object svg{width:76px;height:80px}
+  .instrument-matching .lab-object strong{font-size:11px}
+  .instrument-matching .object-sub{font-size:10px}
+}

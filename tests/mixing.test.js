@@ -1,5 +1,5 @@
-const assert=require('node:assert/strict');
-const {initial,pour,capacities}=require('../dist/mixing.js');
+import assert from 'node:assert/strict';
+import {initial,pour,capacities} from '../src/simulations/mixing.js';
 const totals=v=>[v.reduce((n,g)=>n+g.mass,0),v.reduce((n,g)=>n+g.mass*(g.temperature??0),0)];
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-7,`${a} != ${b}`);
 let initialState=initial();
