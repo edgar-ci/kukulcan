@@ -5,6 +5,14 @@ test.beforeEach(async ({ page }) => {
   await page.addLocatorHandler(page.getByRole('button', { name: 'Cerrar reto' }), async button => { await button.click(); });
 });
 
+// Simulate tab visibility without depending on headless window focus.
+async function toggleDocumentVisibility(page) {
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, value: !document.hidden });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+}
+
 async function selectTemperature(page, temperature) {
   await page.locator('#water-temperature').fill(String(temperature));
 }
@@ -35,8 +43,7 @@ test('warming adds small bubbles progressively and removes them when cold or ful
     await selectTemperature(page, temperature);
     expect(await visibleCount()).toBe(0);
   }
-  await page.locator('#phase-science').click();
-  await expect(page.getByRole('dialog')).toContainText('no como umbral físico');
+  await expect(page.locator('#phase-science')).toHaveCount(0);
 });
 
 test('all sample states are readable with reduced motion on desktop and mobile', async ({ page }) => {
@@ -64,17 +71,18 @@ test('all sample states are readable with reduced motion on desktop and mobile',
   expect(await page.locator('.phase-glass').innerHTML()).toBe(staticFrame);
 });
 
-test('sample reverses smoothly, pauses all effects, and cleans up on navigation', async ({ page }) => {
+test('sample reverses smoothly, pauses when the document is hidden, and cleans up on navigation', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
   await page.locator('[data-mission="1"]').click();
+  await expect(page.locator('#scene-pause')).toHaveCount(0);
   await selectTemperature(page, -20);
   await expect(page.locator('#phase-liquid')).toHaveAttribute('opacity', '0');
   await selectTemperature(page, 25);
   await expect.poll(async () => Number(await page.locator('#phase-liquid').getAttribute('opacity'))).toBeGreaterThan(0);
-  await page.locator('#scene-pause').click();
+  await toggleDocumentVisibility(page);
   const intermediate = await page.locator('.phase-glass').innerHTML();
   await page.locator('.phase-sample').screenshot({ path: 'test-results/phase-melting-intermediate.png' });
   await page.waitForTimeout(120);
@@ -83,12 +91,12 @@ test('sample reverses smoothly, pauses all effects, and cleans up on navigation'
   await selectTemperature(page, -20);
   // Retargeting while paused must preserve the exact geometry already on screen.
   expect(await page.locator('#phase-ice').innerHTML()).toBe(pausedIce);
-  await page.locator('#scene-pause').click();
+  await toggleDocumentVisibility(page);
   await expect(page.locator('#phase-liquid')).toHaveAttribute('opacity', '0');
   await selectTemperature(page, 100);
   await expect(page.locator('#phase-vapor')).toHaveAttribute('opacity', '0.5');
   await page.locator('.phase-sample').screenshot({ path: 'test-results/phase-boiling-animated.png' });
-  await page.locator('#scene-pause').click();
+  await toggleDocumentVisibility(page);
   const boiling = await page.locator('.phase-glass').innerHTML();
   await page.waitForTimeout(120);
   expect(await page.locator('.phase-glass').innerHTML()).toBe(boiling);
@@ -99,7 +107,7 @@ test('sample reverses smoothly, pauses all effects, and cleans up on navigation'
   expect(errors).toEqual([]);
 });
 
-test('particle design preserves molecule size and pauses spheres, lattice and trails', async ({ page }) => {
+test('particle design preserves molecule size and pauses spheres, lattice and trails while hidden', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto('/');
   await page.locator('[data-mission="1"]').click();
@@ -109,7 +117,7 @@ test('particle design preserves molecule size and pauses spheres, lattice and tr
   const before = await spheres.first().getAttribute('cx');
   await expect.poll(() => spheres.first().getAttribute('cx')).not.toBe(before);
   await expect.poll(() => page.locator('.particle-trails path').first().getAttribute('opacity')).not.toBe('0');
-  await page.locator('#scene-pause').click();
+  await toggleDocumentVisibility(page);
   const paused = await page.locator('.phase-particles svg').innerHTML();
   await page.waitForTimeout(150);
   expect(await page.locator('.phase-particles svg').innerHTML()).toBe(paused);
@@ -153,7 +161,7 @@ test('temperature colors change particles and background continuously and revers
   const initial = await palette();
   await selectTemperature(page, 120);
   await expect.poll(async () => (await palette()).body).not.toBe(initial.body);
-  await page.locator('#scene-pause').click();
+  await toggleDocumentVisibility(page);
   const paused = await palette();
   await page.waitForTimeout(150);
   expect(await palette()).toEqual(paused);

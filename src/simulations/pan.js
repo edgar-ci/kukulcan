@@ -192,7 +192,7 @@ export function mountPan(stage, noteElement, helpers) {
     stage.classList.remove('pan-burning', 'scene-paused');
     stage.dataset.phase = 'incomplete';
     stage.innerHTML = `
-      <div class="scene-goal"><span>CONSTRUYE Y OBSERVA</span><strong id="scene-goal">Construye una sartén que cocine y proteja</strong></div>
+
       <div class="scene-bubble" id="scene-bubble" role="status" aria-live="polite">Coloca un cuerpo y un mango en sus siluetas.</div>
       <div class="scene-board">
         <div class="object-shelf">${materials.map(([id, label, sub]) => `<button type="button" class="lab-object draggable" data-object="${id}" aria-pressed="false" aria-label="${label}. ${sub}">${icon(id)}<strong>${label}</strong><span class="object-sub">${sub}</span></button>`).join('')}</div>
@@ -209,12 +209,12 @@ export function mountPan(stage, noteElement, helpers) {
             <circle cx="235" cy="312" r="10" fill="#dce0cc"/><path d="M235 312L239 306" stroke="#526a5f" stroke-width="3" stroke-linecap="round"/>
             <g class="pan-assembly"><g class="pan-handle-art">${handleShape}<rect class="pan-handle-heat" x="18" y="-12" width="110" height="24" rx="12" fill="#f36f37"/></g><g class="pan-body-art">${bodyShape}<path class="pan-body-heat" d="M-92 0Q0 28 92 0L78 34Q0 65-78 34Z" fill="#f36f37"/></g></g>
           </svg>
-          <div class="pan-targets">${['body', 'handle'].map((id) => `<div data-pan-target="${id}"><button type="button" class="lab-object destination" data-object="${id}" aria-label="Coloca el ${id === 'body' ? 'cuerpo' : 'mango'} en su silueta"><strong>${id === 'body' ? 'Cuerpo' : 'Mango'}</strong><span class="object-sub">Coloca aquí</span></button></div>`).join('')}</div>
+          <div class="pan-targets">${['body', 'handle'].map((id) => `<div data-pan-target="${id}"><button type="button" class="lab-object destination" data-object="${id}" aria-label="Coloca el ${id === 'body' ? 'cuerpo' : 'mango'} en su silueta"><strong>${id === 'body' ? 'Cuerpo' : 'Mango'}</strong></button></div>`).join('')}</div>
         </div>
         <button class="text-button" id="compare-materials">Consultar los ocho materiales ↗</button>
       </div>
       <div class="scene-readout" id="scene-readout" aria-live="polite"></div>
-      <div class="scene-footer"><small>Toca una pieza y su silueta, o arrástrala.</small><button id="scene-pause" class="text-button" hidden>Ⅱ Pausar</button><button id="scene-replay" class="text-button">↺ Volver a probar</button></div>`;
+      <div class="scene-footer"><button id="scene-pause" class="text-button" hidden>Ⅱ Pausar</button><button id="scene-replay" class="text-button">↺ Volver a probar</button></div>`;
     placement = createCardPlacement(stage, reduced);
     placement.prepare(materials.map(([id]) => id), ['body', 'handle']);
     materials.forEach(([id]) => wirePiece(id));

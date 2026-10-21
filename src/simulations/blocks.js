@@ -20,7 +20,7 @@ export function mountBlocks(stage, noteElement, helpers = {}) {
 
   stage.className = 'stage play-stage stack-lab';
   stage.innerHTML = `
-    <div class="scene-goal"><span>CONSTRUYE Y OBSERVA</span><strong id="scene-goal">Apila bloques. ¿A qué temperatura llegarán?</strong></div>
+
     <div class="scene-bubble" id="scene-bubble" role="status" aria-live="polite">Arrastra un bloque sobre otro, o selecciónalo y toca su destino.</div>
     <div class="scene-board">
       <div class="stack-shelf" aria-label="Bloques disponibles"></div>
@@ -31,8 +31,8 @@ export function mountBlocks(stage, noteElement, helpers = {}) {
           <span class="stack-base" aria-hidden="true"></span>
         </div>
         <div class="stack-observation"><span class="eyebrow">MISMO MATERIAL Y TAMAÑO</span>
-          <strong id="stack-state">Empieza con dos bloques</strong>
-          <p id="stack-description">Elige un bloque y colócalo sobre otro. El calor pasa del más caliente al más frío.</p>
+          <strong id="stack-state">Pila vacía</strong>
+          <p id="stack-description">Todavía no hay bloques en contacto.</p>
           <div class="stack-legend"><span>20 °C</span><i aria-hidden="true"></i><span>80 °C</span></div>
           <small>El color representa la temperatura.</small>
           <button type="button" id="stack-remove" class="outline" disabled>↑ Retirar el de arriba</button>
@@ -40,7 +40,7 @@ export function mountBlocks(stage, noteElement, helpers = {}) {
       </div>
     </div>
     <p class="scene-readout" id="scene-readout" aria-live="polite"></p>
-    <div class="scene-footer"><small>También puedes usar Tab y Enter para elegir y apilar.</small><button id="scene-pause" class="text-button" hidden>Ⅱ Pausar</button><button id="scene-replay" class="text-button">↺ Reiniciar bloques</button></div>`;
+    <div class="scene-footer"><button id="scene-pause" class="text-button" hidden>Ⅱ Pausar</button><button id="scene-replay" class="text-button">↺ Reiniciar bloques</button></div>`;
   noteElement.textContent = 'Bloques de igual capacidad térmica, sin pérdidas al ambiente. Solo intercambian calor entre vecinos en contacto. El tiempo y los colores son ilustrativos; cada bloque se representa con una temperatura uniforme.';
   const q = (selector) => stage.querySelector(selector);
   const shelf = q('.stack-shelf');
@@ -94,14 +94,14 @@ export function mountBlocks(stage, noteElement, helpers = {}) {
     previousTime = null;
     q('#scene-readout').textContent = '';
     if (stack.length < 2) {
-      q('#stack-state').textContent = stack.length ? 'Falta un bloque para comparar' : 'Empieza con dos bloques';
-      q('#stack-description').textContent = 'Elige un bloque y colócalo sobre otro. El calor pasa del más caliente al más frío.';
+      q('#stack-state').textContent = stack.length ? 'Falta un bloque para comparar' : 'Pila vacía';
+      q('#stack-description').textContent = 'Todavía no hay bloques en contacto.';
       q('#scene-pause').hidden = true;
       return;
     }
     const average = equilibriumTemperature(stack.map((index) => temperatures[index]));
     q('#stack-state').textContent = paused ? 'Intercambio en pausa' : 'El calor pasa entre vecinos';
-    q('#stack-description').textContent = `${stack.length} bloques en contacto. Si los dejas juntos, todos llegarán a ${format(average)} °C. Prueba añadir uno más frío o más caliente.`;
+    q('#stack-description').textContent = `${stack.length} bloques en contacto. El calor pasa entre vecinos a distinta temperatura.`;
     q('#scene-readout').textContent = `Equilibrio previsto: ${format(average)} °C en cada bloque.`;
     q('#scene-pause').hidden = reduced;
     if (reduced || Math.max(...stack.map((id) => temperatures[id])) - Math.min(...stack.map((id) => temperatures[id])) < 0.02) finish(average);

@@ -10,7 +10,7 @@
 /* Wider center vessel: 300 g capacity versus 250 g at either side. */
 .mix-row{grid-template-columns:1fr 1.2fr 1fr}.mix-object[data-object="water1"] .mix-glass{width:182.4px}@media(max-width:650px){.mix-object[data-object="water1"] .mix-glass{width:120px}}
 
-.phase-lab{display:grid;grid-template-columns:minmax(150px,.8fr) minmax(230px,1.2fr);gap:18px;padding:12px 0}.phase-eyebrow{font-size:9px;letter-spacing:1.6px;color:#56736a;font-weight:700}.phase-sample{text-align:center;align-self:center}.phase-sample>svg{display:block;width:100%;max-width:280px;margin:auto;height:auto}.phase-sample>strong{font:600 21px 'Space Grotesk',sans-serif;display:block}.phase-sample>p{font-size:12px;line-height:1.5;margin:8px auto;max-width:220px}.phase-card{background:#fffdf5;border:1px solid #cbd7c5;border-radius:18px;padding:18px;min-width:0}.phase-card h3{font-size:17px;margin:8px 0;min-height:42px}.phase-card p{font-size:12px;line-height:1.6;min-height:60px;margin:10px 0 0}.phase-particles{display:block;border:1px solid var(--particle-border,#c5dcd5);background:radial-gradient(ellipse at 45% 35%,var(--particle-glow,#f5fcf9),var(--particle-background,#e2efea));border-radius:16px;width:100%;padding:4px 0 10px;color:#416558;cursor:pointer;box-shadow:inset 0 2px 7px #376d6810}.phase-particles:hover{border-color:var(--particle-body,#7faeab)}.phase-particles:focus-visible{outline:3px solid #527966;outline-offset:4px}.phase-particles svg{width:100%;height:220px;display:block}.phase-particles span{font-size:10px}.phase-control{grid-column:1/-1;background:#fffcf2;border:1px solid #d3ddca;border-radius:16px;padding:20px 24px}.phase-control-heading{display:flex;justify-content:space-between;align-items:center;gap:12px}.phase-control label{font-size:13px;font-weight:600}.phase-control output{font:600 26px 'Space Grotesk',sans-serif;white-space:nowrap}.thermometer-range{position:relative;margin:16px 0 0 12px;padding-left:14px;--temperature-position:32.14%}.thermometer-bulb{position:absolute;left:-12px;top:10px;width:28px;height:28px;border-radius:50%;background:#71b9d3;border:4px solid #fcfaf0;box-shadow:0 0 0 1px #86a899;z-index:1}.thermometer-range input{appearance:none;-webkit-appearance:none;display:block;width:100%;height:48px;background:transparent;margin:0;cursor:ew-resize;touch-action:pan-y}.thermometer-range input::-webkit-slider-runnable-track{height:18px;border-radius:12px;background:linear-gradient(90deg,#64accb,#b6d9dd 30%,#edc58d 65%,#da7046);border:3px solid #fcfaf0;box-shadow:0 0 0 1px #86a899}.thermometer-range input::-moz-range-track{height:12px;border-radius:12px;background:linear-gradient(90deg,#64accb,#b6d9dd 30%,#edc58d 65%,#da7046);border:3px solid #fcfaf0}.thermometer-range input::-webkit-slider-thumb{appearance:none;width:28px;height:36px;border-radius:10px;background:#fffdf5;border:3px solid #315e50;box-shadow:0 2px 6px #213b2730;margin-top:-12px}.thermometer-range input::-moz-range-thumb{width:23px;height:30px;border-radius:10px;background:#fffdf5;border:3px solid #315e50}.thermometer-range input:focus-visible{outline:3px solid #527966;outline-offset:4px;border-radius:15px}.temperature-ticks{position:relative;height:22px;margin:0 14px 0 40px;font-size:9px;color:#61786b}.temperature-ticks span{position:absolute;transform:translateX(-50%);white-space:nowrap}.temperature-ends{display:flex;justify-content:space-between;font-size:11px;color:#54796c}.phase-control p{font-size:12px;line-height:1.6}.phase-control #phase-boundary{font-size:11px;color:#60766a;background:#edf1e5;border-radius:9px;padding:10px}.phase-control .text-button{font-size:11px;text-align:left;padding:4px 0}@media(max-width:650px){.phase-lab{grid-template-columns:1fr;gap:12px}.phase-sample{display:grid;grid-template-columns:minmax(140px,.9fr) minmax(0,1fr);align-items:center;text-align:left;gap:0 10px}.phase-sample>svg{grid-row:1/5;width:100%;height:auto;grid-column:1}.phase-sample>.phase-eyebrow{grid-column:2}.phase-sample>strong{font-size:20px}.phase-sample>p{margin:5px 0;max-width:none}.phase-card{padding:14px}.phase-card h3,.phase-card p{min-height:0}.phase-particles svg{height:auto;aspect-ratio:320/210}.phase-control{padding:16px}.phase-card{grid-row:2}.phase-control-heading output{font-size:24px}.temperature-ticks{font-size:8px}}@media(prefers-reduced-motion:reduce){.phase-lab [id^="phase-"]{transition:none}}
+.phase-lab{display:grid;grid-template-columns:minmax(150px,.8fr) minmax(230px,1.2fr);gap:18px;padding:12px 0}.phase-eyebrow{font-size:9px;letter-spacing:1.6px;color:#56736a;font-weight:700}.phase-sample{text-align:center;align-self:center}.phase-sample>svg{display:block;width:100%;max-width:280px;margin:auto;height:auto}.phase-sample>strong{font:600 21px 'Space Grotesk',sans-serif;display:block}.phase-sample>p{font-size:12px;line-height:1.5;margin:8px auto;max-width:220px}.phase-card{background:#fffdf5;border:1px solid #cbd7c5;border-radius:18px;padding:18px;min-width:0}.phase-card h3{font-size:17px;margin:8px 0;min-height:42px}.phase-card p{font-size:12px;line-height:1.6;min-height:60px;margin:10px 0 0}.phase-particles{display:block;border:1px solid var(--particle-border,#c5dcd5);background:radial-gradient(ellipse at 45% 35%,var(--particle-glow,#f5fcf9),var(--particle-background,#e2efea));border-radius:16px;width:80%;max-width:260px;margin:12px auto;padding:4px;color:#416558;cursor:pointer;box-shadow:inset 0 2px 7px #376d6810}.phase-particles:hover{border-color:var(--particle-body,#7faeab)}.phase-particles:focus-visible{outline:3px solid #527966;outline-offset:4px}.phase-particles svg{width:100%;height:auto;aspect-ratio:320/210;display:block}.phase-particles span{font-size:10px}.phase-control{grid-column:1/-1;background:#fffcf2;border:1px solid #d3ddca;border-radius:16px;padding:20px 24px}.phase-control-heading{display:flex;justify-content:space-between;align-items:center;gap:12px}.phase-control label{font-size:13px;font-weight:600}.phase-control output{font:600 26px 'Space Grotesk',sans-serif;white-space:nowrap}.thermometer-range{position:relative;margin:16px 0 0 12px;padding-left:14px;--temperature-position:32.14%}.thermometer-bulb{position:absolute;left:-12px;top:10px;width:28px;height:28px;border-radius:50%;background:#71b9d3;border:4px solid #fcfaf0;box-shadow:0 0 0 1px #86a899;z-index:1}.thermometer-range input{appearance:none;-webkit-appearance:none;display:block;width:100%;height:48px;background:transparent;margin:0;cursor:ew-resize;touch-action:pan-y}.thermometer-range input::-webkit-slider-runnable-track{height:18px;border-radius:12px;background:linear-gradient(90deg,#64accb,#b6d9dd 30%,#edc58d 65%,#da7046);border:3px solid #fcfaf0;box-shadow:0 0 0 1px #86a899}.thermometer-range input::-moz-range-track{height:12px;border-radius:12px;background:linear-gradient(90deg,#64accb,#b6d9dd 30%,#edc58d 65%,#da7046);border:3px solid #fcfaf0}.thermometer-range input::-webkit-slider-thumb{appearance:none;width:28px;height:36px;border-radius:10px;background:#fffdf5;border:3px solid #315e50;box-shadow:0 2px 6px #213b2730;margin-top:-12px}.thermometer-range input::-moz-range-thumb{width:23px;height:30px;border-radius:10px;background:#fffdf5;border:3px solid #315e50}.thermometer-range input:focus-visible{outline:3px solid #527966;outline-offset:4px;border-radius:15px}.temperature-ticks{position:relative;height:22px;margin:0 14px 0 40px;font-size:9px;color:#61786b}.temperature-ticks span{position:absolute;transform:translateX(-50%);white-space:nowrap}.temperature-ends{display:flex;justify-content:space-between;font-size:11px;color:#54796c}.phase-control p{font-size:12px;line-height:1.6}.phase-control #phase-boundary{font-size:11px;color:#60766a;background:#edf1e5;border-radius:9px;padding:10px}.phase-control .text-button{font-size:11px;text-align:left;padding:4px 0}@media(max-width:650px){.phase-lab{grid-template-columns:1fr;gap:12px}.phase-sample{display:grid;grid-template-columns:minmax(140px,.9fr) minmax(0,1fr);align-items:center;text-align:left;gap:0 10px}.phase-sample>svg{grid-row:1/5;width:100%;height:auto;grid-column:1}.phase-sample>.phase-eyebrow{grid-column:2}.phase-sample>strong{font-size:20px}.phase-sample>p{margin:5px 0;max-width:none}.phase-card{padding:14px}.phase-card h3,.phase-card p{min-height:0}.phase-particles svg{height:auto;aspect-ratio:320/210}.phase-control{padding:16px}.phase-card{grid-row:2}.phase-control-heading output{font-size:24px}.temperature-ticks{font-size:8px}}@media(prefers-reduced-motion:reduce){.phase-lab [id^="phase-"]{transition:none}}
 
 /* Stackable equal-capacity blocks: SVG faces share a temperature color scale. */
 .stack-shelf{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;min-height:115px;padding:10px 0 18px;border-bottom:1px dashed #b9cbb6;align-items:start}
@@ -158,29 +158,47 @@
 
 /* The checkpoint belongs to the experiment, not to the reading column. */
 .experiment{position:relative}
-.below{grid-template-columns:1fr}
-.below .explanation{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(240px,1fr);align-items:start;gap:16px}
-.explanation-reading{display:grid;gap:16px;min-width:0}
-.explanation-card{min-width:0;border:1px solid var(--line);border-radius:16px;background:#fffdf8}
-.explanation-idea{padding:26px 28px;border-top:3px solid var(--orange)}
-.explanation-idea .eyebrow{color:#6b5345;font-size:10px;letter-spacing:1.5px}
-.explanation-idea h2{font-size:clamp(21px,2vw,27px);line-height:1.25;letter-spacing:-.6px;margin:12px 0}
-.explanation p{font-size:15px;line-height:1.75;max-width:65ch;margin:0}
-.explanation details{font-size:15px;line-height:1.75;margin:0}
-.explanation-science summary{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:64px;padding:16px 24px;list-style:none;border-radius:15px;font-weight:600}
-.explanation-science summary::-webkit-details-marker{display:none}
-.explanation-science summary:hover{background:var(--mint)}
-.science-toggle{display:grid;place-items:center;flex-shrink:0;width:28px;height:28px;border:1px solid #bdcdbb;border-radius:50%;font-size:21px;line-height:1;color:var(--ink)}
-.explanation-science[open] .science-toggle{transform:rotate(45deg)}
-.explanation-science[open] summary{border-radius:15px 15px 0 0;border-bottom:1px solid var(--line);background:#f1f5ec}
-.explanation-science p{padding:20px 24px 24px}
-.explanation-resources{padding:24px;background:#eef3e9}
-.explanation-resources h2{margin:0 0 18px;font-size:18px;letter-spacing:-.3px}
-.explanation-resources .curiosity{margin:0;padding:18px;background:#fff3df;border-color:#e5cda6;border-radius:10px;font-size:16px;font-weight:600;line-height:1.5;min-height:44px}
-.explanation-resources .curiosity span{color:#77582c;letter-spacing:1.2px;line-height:1.6}
-.explanation-resources .text-button{display:block;width:100%;text-align:left;min-height:44px;margin-top:14px;padding:12px 0 0;color:var(--ink);border-top:1px solid #ccd8c7;border-radius:0;font-size:13px;line-height:1.6}
-@media(max-width:1000px){.below .explanation{grid-template-columns:1fr}}
-@media(max-width:650px){.explanation-idea,.explanation-resources{padding:22px 20px}.explanation-science summary{padding:16px 20px}.explanation-science p{padding:18px 20px 22px}}
+/* The explanation continues the experiment on a single notebook surface. */
+.mission-workbench{border:1px solid #d3ded2;border-radius:18px;background:#fffdf8}
+.mission-workbench>.experiment{border:0;border-bottom:1px solid #d3ded2;border-radius:17px 17px 0 0}
+.mission-workbench>.below{display:block;margin:0}
+.below .explanation{max-width:none;display:block}
+.explanation-reading{display:grid;grid-template-columns:180px minmax(0,1fr);gap:32px;padding:32px}
+.lesson-sketch{margin:0;padding-top:14px;text-align:center}
+.lesson-sketch svg{width:100%;max-width:200px;height:auto}
+.lesson-sketch figcaption{max-width:170px;margin:8px auto 0;font-size:12px;line-height:1.5;color:#526c63}
+.explanation-copy{min-width:0}
+.explanation-idea .eyebrow{color:#8c462a;font-size:10px;letter-spacing:1.5px}
+.explanation-idea h2{font-size:clamp(22px,2vw,28px);line-height:1.25;letter-spacing:-.6px;margin:10px 0 14px}
+.explanation p{font-size:15px;line-height:1.7;max-width:65ch;margin:0}
+.explanation-science{margin-top:24px;padding-top:22px;border-top:1px solid var(--line)}
+.explanation-science h3{font-size:17px;line-height:1.4;margin:0 0 8px}
+.explanation-science>p{color:#52645f}
+.explanation details{font-size:15px;line-height:1.7;margin:10px 0 0}
+.explanation summary{display:flex;align-items:center;gap:12px;width:fit-content;max-width:100%;min-height:44px;padding:8px 0;list-style:none;font-size:13px;font-weight:700;color:#294f45;text-decoration:underline;text-decoration-color:#9eb5a9;text-underline-offset:5px;border-radius:3px}
+.explanation summary::-webkit-details-marker{display:none}
+.explanation summary:hover{color:#93411f;text-decoration-color:currentColor}
+.explanation .disclosure-arrow{font-size:20px;line-height:1;text-decoration:none}
+.explanation details[open] .disclosure-arrow{transform:rotate(180deg)}
+.explanation .when-open,.explanation details[open]>summary .when-closed{display:none}
+.explanation details[open]>summary .when-open{display:inline}
+.science-detail{border-left:2px solid #9eb5a9;margin-top:10px;padding:4px 0 4px 18px}
+.explanation-curiosity{display:grid;grid-template-columns:180px minmax(0,1fr);gap:32px;padding:30px 32px;background:#f8dfbc;border-top:1px solid #e4c49b;border-bottom:1px solid #e4c49b;position:relative}
+.curiosity-mark{align-self:start;display:flex;justify-content:center;align-items:center;min-height:145px;color:#9c4829;font:500 100px/1 'Space Grotesk',sans-serif;letter-spacing:-10px}
+.curiosity-mark span:first-child{transform:rotate(-15deg) translateY(12px);color:#bf6d44}
+.curiosity-mark span:last-child{transform:rotate(15deg)}
+.curiosity-copy{min-width:0}
+.explanation-curiosity .eyebrow{color:#7d492c;font-size:9px;letter-spacing:1.4px}
+.explanation-curiosity h2{font-size:clamp(25px,2.5vw,34px);line-height:1.15;letter-spacing:-.8px;margin:10px 0 12px}
+.explanation-curiosity summary{background:#244c40;color:#fffdf5;border:1px solid #244c40;border-radius:7px;text-decoration:none;padding:10px 16px;margin-top:14px}
+.explanation-curiosity summary:hover{background:#35624f;color:white}
+.curiosity-detail{margin-top:18px;padding-top:18px;border-top:1px solid #d5b58e}
+.curiosity-detail a{display:inline-flex;align-items:center;min-height:44px;margin-top:10px;font-size:13px;font-weight:600;text-underline-offset:4px}
+.explanation .phet-hint{font-size:12px;color:#6a5139}
+.explanation-tools{padding:10px 32px;text-align:right}
+.explanation-tools .text-button{min-height:44px;color:#52645f;font-size:12px;padding:10px 0}
+@media(max-width:1000px){.explanation-reading,.explanation-curiosity{grid-template-columns:120px minmax(0,1fr);gap:22px;padding:26px}.curiosity-mark{font-size:82px}.lesson-sketch figcaption{font-size:11px}}
+@media(max-width:650px){.explanation-reading{display:flex;flex-direction:column;gap:18px;padding:22px 20px}.lesson-sketch{display:flex;align-items:center;gap:18px;text-align:left;padding:0}.lesson-sketch svg{width:112px;flex-shrink:0}.lesson-sketch figcaption{max-width:140px;margin:0;font-size:12px}.explanation-curiosity{display:block;padding:24px 20px}.curiosity-mark{display:none}.explanation-curiosity h2{max-width:100%}.explanation-tools{padding:8px 20px;text-align:left}.explanation p{font-size:14px}.explanation summary{font-size:12px}.science-detail{padding-left:14px}}
 .exercise-reopen{display:block;margin:8px 20px 0 auto}
 .exercise-overlay{position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:20px;background:#edf3e9d9;backdrop-filter:blur(4px);border-radius:inherit}
 .exercise-overlay-card{position:relative;width:100%;max-width:470px;max-height:min(650px,80vh);overflow:auto;padding:32px;background:#fffdf6;border:1px solid #b8cbb6;border-radius:20px;box-shadow:0 18px 50px #22483a25;animation:checkpoint-in 220ms ease-out}
@@ -194,3 +212,15 @@
 .congrats-note{color:var(--muted)}
 @keyframes checkpoint-in{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
 @media(max-width:650px){.exercise-overlay{padding:12px}.exercise-overlay-card{padding:28px 18px 20px}.exercise-overlay-card h2{font-size:22px}.exercise-overlay-card .answer{min-height:44px}}
+
+/* Keep the next action visible; expose controls and assumptions on demand. */
+.scene-readout:empty,#phase-boundary:empty{display:none}
+
+.phase-lab .phase-card{width:min(100%,320px);justify-self:center;align-self:center;padding:14px}
+.phase-card h3,.phase-card p{min-height:0}
+.phase-card .phase-particles{margin:8px auto}
+
+/* Optical alignment: the glass SVG reserves headroom for vapor. */
+@media(min-width:651px){.phase-sample{transform:translateY(-28px)}}
+
+.scene-footer:not(:has(button:not([hidden]))){display:none}

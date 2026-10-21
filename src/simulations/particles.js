@@ -79,27 +79,24 @@ import { sampleMarkup, createSample, advanceSample, createSamplePainter } from '
     const tint=(amount,target=255)=>`rgb(${base.map(value=>Math.round(value+(target-value)*amount)).join(',')})`;
     return { highlight:tint(.82),light:tint(.4),body:tint(0),edge:tint(.32,0),background:tint(.86),glow:tint(.97),border:tint(.6) };
   }
-  function mount({board,q,goal,note,say,readout,animate,reduced,helpers}){
-    goal('Del hielo al vapor: mueve el termómetro');
-    note('Agua a 1 atm (presión atmosférica normal). Vista cualitativa: tamaños, distancias y velocidades no están a escala. El control elige temperatura, no cantidad de calor.');
-    q('.scene-footer small').textContent='Arrastra el termómetro o usa las flechas del teclado.';
+  function mount({board,q,note,say,readout,animate,reduced,helpers}){
+    note('Agua a 1 atm (presión atmosférica normal). Vista cualitativa: tamaños, distancias y velocidades no están a escala. El control elige temperatura, no cantidad de calor. La rapidez del dibujo está exagerada para comparar: no mide velocidades ni el tiempo real del cambio de estado.');
     board.innerHTML=`<div class="phase-lab">
-      <div class="phase-sample"><span class="phase-eyebrow">A SIMPLE VISTA</span>
+      <div class="phase-sample">
         ${sampleMarkup}<strong id="phase-name"></strong><p id="phase-caption"></p>
       </div>
-      <aside class="phase-card" aria-label="Vista ampliada de las partículas"><span class="phase-eyebrow">BAJO LA LUPA · H₂O</span><h3 id="particle-heading">Cerca, pero libres de moverse</h3>
+      <aside class="phase-card" aria-label="Vista ampliada de las partículas">
         <button id="particle-definition" class="phase-particles" aria-label="Qué representan las partículas"><svg viewBox="0 0 320 210" aria-hidden="true"><defs><radialGradient id="molecule-sphere" cx="30%" cy="25%" r="75%"><stop stop-color="var(--particle-highlight)"/><stop offset=".3" stop-color="var(--particle-light)"/><stop offset=".72" stop-color="var(--particle-body)"/><stop offset="1" stop-color="var(--particle-edge)"/></radialGradient></defs>
           <g class="particle-lattice" stroke="var(--particle-body)" stroke-width=".8">${latticeEdges.map(()=>'<path/>').join('')}</g>
           <g class="particle-trails" fill="none" stroke="var(--particle-body)" stroke-width="2" stroke-linecap="round">${Array.from({length:particleCount},()=>'<path/>').join('')}</g>
-          <g class="particle-spheres">${Array.from({length:particleCount},()=>'<circle r="5.5" fill="url(#molecule-sphere)" stroke="var(--particle-edge)" stroke-opacity=".45" stroke-width=".6"/>').join('')}</g></svg><span>¿Qué estoy viendo? ↗</span></button>
+          <g class="particle-spheres">${Array.from({length:particleCount},()=>'<circle r="5.5" fill="url(#molecule-sphere)" stroke="var(--particle-edge)" stroke-opacity=".45" stroke-width=".6"/>').join('')}</g></svg></button>
         <p id="particle-description"></p>
       </aside>
-      <div class="phase-control"><div class="phase-control-heading"><label for="water-temperature">Desliza la temperatura</label><output id="water-temperature-value" for="water-temperature">25 °C</output></div>
-        <div class="thermometer-range"><span class="thermometer-bulb" aria-hidden="true"></span><input type="range" id="water-temperature" min="-20" max="120" step="1" value="25" aria-describedby="temperature-help phase-boundary"></div>
+      <div class="phase-control"><div class="phase-control-heading"><label for="water-temperature">Temperatura</label><output id="water-temperature-value" for="water-temperature">25 °C</output></div>
+        <div class="thermometer-range"><span class="thermometer-bulb" aria-hidden="true"></span><input type="range" id="water-temperature" min="-20" max="120" step="1" value="25" aria-describedby="phase-boundary"></div>
         <div class="temperature-ticks" aria-hidden="true"><span style="left:0">−20 °C</span><span style="left:14.2857%">0 °C</span><span style="left:85.7143%">100 °C</span><span style="left:100%">120 °C</span></div>
         <div class="temperature-ends"><span>❄ Frío</span><span>Caliente ☀</span></div>
-        <p id="temperature-help">Prueba por debajo de 0 °C y por encima de 100 °C. Después vuelve a enfriar.</p>
-        <p id="phase-boundary"></p><button class="text-button" id="phase-science">¿Por qué a veces el calor no sube la temperatura? ↗</button>
+        <p id="phase-boundary"></p>
       </div></div>`;
     let temperature=25,phase=phaseAt(temperature),lastTime=0;
     const dots=[...q('.phase-particles').querySelectorAll('circle')];
@@ -143,12 +140,12 @@ import { sampleMarkup, createSample, advanceSample, createSamplePainter } from '
 
     function update(){
       temperature=Number(q('#water-temperature').value);phase=phaseAt(temperature);
-      const [name,caption,heading,description]=descriptions[phase];
+      const [name,caption,,description]=descriptions[phase];
       q('#water-temperature-value').textContent=temperature+' °C';q('#water-temperature').setAttribute('aria-valuetext',temperature+' grados Celsius. '+name);
       q('.phase-lab').dataset.phase=phase;q('.thermometer-range').style.setProperty('--temperature-position',((temperature+20)/140*100)+'%');
       q('#phase-name').textContent=name;q('#sample-title').textContent=name;q('#phase-caption').textContent=phase==='water'&&temperature>40?'Burbujas de aire disuelto: todavía no hierve.':caption;
-      q('#particle-heading').textContent=heading;q('#particle-description').textContent=description;
-      q('#phase-boundary').textContent=['melting','boiling'].includes(phase)?'En este punto, la temperatura no dice cuánto ha cambiado de estado. Mostramos una mezcla ilustrativa: absorber o liberar energía cambia las proporciones sin cambiar la temperatura.':'La agrupación y la velocidad cambian suavemente. La rapidez del dibujo está exagerada para comparar: no mide velocidades ni el tiempo real del cambio de estado.';
+      q('#particle-description').textContent=description;
+      q('#phase-boundary').textContent=['melting','boiling'].includes(phase)?'En este punto, la temperatura no dice cuánto ha cambiado de estado. Mostramos una mezcla ilustrativa: absorber o liberar energía cambia las proporciones sin cambiar la temperatura.':'';
       advanceSample(sample,phase,0,reduced,temperature);
       if(reduced)advanceMotion(motion,temperature,0,true);
       paint();
@@ -162,8 +159,7 @@ import { sampleMarkup, createSample, advanceSample, createSamplePainter } from '
       if (explored.size === 2) helpers.onSuccess?.();
     };
     q('#particle-definition').onclick=()=>helpers.openModal('Una lupa imaginaria','<p>Cada círculo representa una molécula de agua, H₂O. Conservamos las mismas 64 moléculas y su tamaño en todos los estados.</p><p>En el hielo vibran alrededor de posiciones ordenadas; en el agua se deslizan entre vecinas; en el gas recorren distancias mayores entre choques.</p><p>La energía cinética es energía de movimiento. Al aumentar la temperatura, aumenta en promedio. No todas las moléculas tienen la misma velocidad. Ni el hielo ni el agua a 0 °C tienen sus moléculas detenidas.</p><p>Las líneas del hielo ayudan a reconocer el orden; no representan enlaces calculados. Las estelas cortas del gas ayudan a seguir el movimiento. El azul representa temperaturas bajas; los tonos ámbar, naranja y rojo representan temperaturas más altas. El fondo sigue la misma escala. Son colores didácticos: el agua no cambia de color por calentarse. El tamaño de las moléculas se mantiene al cambiar de estado.</p><p>Es una vista esquemática, no una trayectoria molecular calculada. El hielo tiene una estructura abierta: al congelarse, el agua se expande un poco, aunque las moléculas quedan ordenadas y próximas. La gran separación ocurre al pasar a gas.</p><p>El vapor se expande mucho más de lo que cabe mostrar aquí; las moléculas no están limitadas por el recipiente abierto del dibujo.</p>');
-    q('#phase-science').onclick=()=>helpers.openModal('Cambiar de estado también requiere energía','<p>Imagina hielo a 0 °C: puede recibir calor y derretirse sin subir de temperatura. Esa energía cambia cómo se organizan e interactúan sus moléculas. Se llama <b>calor latente</b>.</p><p>A presión constante de 1 atm, la fusión ocurre alrededor de 0 °C y la ebullición a 100 °C. Durante la coexistencia de las fases, la temperatura se mantiene mientras cambia la proporción de cada estado. Al congelarse o condensarse, el agua libera energía.</p><p>Este termómetro selecciona vistas a diferentes temperaturas: no mide calor ni simula cuánto tarda la transformación. Las proporciones dibujadas a 0 y 100 °C son ilustrativas, no calculadas. La duración de la animación tampoco representa el tiempo físico de transformación.</p><p>Antes de hervir pueden aparecer pequeñas burbujas de aire disuelto que sale del agua al calentarse. No hay una temperatura universal de aparición: influyen el gas disuelto, el recipiente y las condiciones de calentamiento. Aquí empiezan gradualmente por encima de 40 °C como recurso ilustrativo, no como umbral físico. Al acercarse a 100 °C aumentamos el burbujeo para mostrar la progresión hacia la ebullición; a 100 °C las burbujas representan vapor de agua. La lupa sigue mostrando solo moléculas de agua, no el aire disuelto.</p><p>El agua también se evapora por debajo de 100 °C. Hervir y evaporarse no son lo mismo. El vapor de agua es invisible: la nube blanca sobre una olla está formada por gotitas líquidas.</p><p><a href="https://openstax.org/books/college-physics-2e/pages/14-3-phase-change-and-latent-heat" target="_blank" rel="noopener noreferrer">Explora los cambios de estado en OpenStax (inglés) ↗</a></p><p><a href="https://smallscience.hbcse.tifr.res.in/wp-content/uploads/2016/05/C4EnglishTeachersBook.pdf" target="_blank" rel="noopener noreferrer">Burbujas de aire antes de hervir: Small Science, TIFR (inglés, PDF) ↗</a></p>');
-    say('Mueve el termómetro: hacia el azul para enfriar y hacia el naranja para calentar. Mira qué cambia bajo la lupa.');
+    say('Cambia la temperatura y observa las partículas al congelar o hervir el agua.');
     update();
     animate(1,t=>{const dt=t-lastTime;lastTime=t;advanceMotion(motion,temperature,dt);advanceSample(sample,phase,dt,false,temperature);paint();},null,true);
   }

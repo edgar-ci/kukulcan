@@ -9,7 +9,7 @@ test('all missions, challenges, final quiz and saved progress work', async ({ pa
   for (let index = 0; index < 7; index++) {
     await page.locator(`[data-mission="${index}"]`).click();
     await expect(page.locator('h1')).toHaveText(LESSONS[index].title);
-    await expect(page.locator('#scene-goal')).not.toBeEmpty();
+    await expect(page.locator('#scene-bubble')).not.toBeEmpty();
     await expect(page.locator('.challenge')).toHaveCount(0);
     await completeExperiment(page, index);
     await expect(page.getByRole('dialog')).toContainText('PONLO A PRUEBA');
@@ -79,9 +79,7 @@ test('mixing, particle keyboard control and navigation during animation', async 
   await page.keyboard.press('Home');
   await expect(range).toHaveValue('-20');
   await page.emulateMedia({ reducedMotion: 'no-preference' });
-  await expect(page.locator('#scene-pause')).toBeVisible();
-  await page.locator('#scene-pause').click();
-  await expect(page.locator('#scene-pause')).toContainText('Continuar');
+  await expect(page.locator('#scene-pause')).toHaveCount(0);
   await page.locator('[data-mission="2"]').click();
   await expect(page.locator('h1')).toHaveText(LESSONS[2].title);
   await page.locator('[data-mission="1"]').click();

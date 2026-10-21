@@ -48,11 +48,11 @@ export function mountScene(index, stage, noteElement, helpers) {
         cue('');
         placement.place(source, target, dropOrigin, () => { busy = false; done(); });
       }
-      stage.innerHTML = `<div class="scene-goal"><span>EXPLORA CON LAS MANOS</span><strong id="scene-goal"></strong></div><div class="scene-bubble" id="scene-bubble" role="status" aria-live="polite"></div><div class="scene-board" id="scene-board"></div><div class="scene-readout" id="scene-readout" aria-live="polite"></div><div class="scene-footer"><small>Toca un objeto y su destino, o arrástralo.</small><button id="scene-pause" class="text-button" hidden>Ⅱ Pausar</button><button id="scene-replay" class="text-button" hidden>↺ Volver a probar</button></div>`;
+      stage.innerHTML = `<div class="scene-bubble" id="scene-bubble" role="status" aria-live="polite"></div><div class="scene-board" id="scene-board"></div>${index <= 1 ? '' : '<div class="scene-readout" id="scene-readout" aria-live="polite"></div>'}<div class="scene-footer">${index === 1 ? '' : '<button id="scene-pause" class="text-button" hidden>Ⅱ Pausar</button>'}<button id="scene-replay" class="text-button" hidden>↺ Volver a probar</button></div>`;
       const q = s => stage.querySelector(s), board = q('#scene-board');
-      const goal = msg => q('#scene-goal').textContent = msg;
+      const pauseButton = q('#scene-pause');
       const say = msg => q('#scene-bubble').textContent = msg;
-      const readout = msg => q('#scene-readout').textContent = msg;
+      const readout = msg => { const element = q('#scene-readout'); if (element) element.textContent = msg; };
       const note = msg => noteElement.textContent = msg;
       const cue = id => { stage.querySelectorAll('.object-cue').forEach(e=>e.classList.remove('object-cue')); q(`[data-object="${id}"]`)?.classList.add('object-cue'); };
       function object(id, label, kind, sub = '', extra = '') {
@@ -103,13 +103,13 @@ export function mountScene(index, stage, noteElement, helpers) {
       function animate(duration, update, done, loop=false) {
         if(busy)return;
         busy=true;paused=false;elapsed=0;last=0;
-        stage.classList.add('scene-running');q('#scene-pause').hidden=reduced;q('#scene-pause').textContent='Ⅱ Pausar';
+        stage.classList.add('scene-running');if(pauseButton){pauseButton.hidden=reduced;pauseButton.textContent='Ⅱ Pausar';}
         if(reduced){update(loop?0:1);busy=false;stage.classList.remove('scene-running');done?.();return;}
-        animationTick=t=>{if(!alive)return;if(!last)last=t;if(!paused){elapsed+=Math.min(t-last,80);update(loop?elapsed/1000:Math.min(1,elapsed/duration))}last=t;if(!loop&&elapsed>=duration){busy=false;q('#scene-pause').hidden=true;stage.classList.remove('scene-running');done?.();return}frame=requestAnimationFrame(animationTick)};
+        animationTick=t=>{if(!alive)return;if(!last)last=t;if(!paused){elapsed+=Math.min(t-last,80);update(loop?elapsed/1000:Math.min(1,elapsed/duration))}last=t;if(!loop&&elapsed>=duration){busy=false;if(pauseButton)pauseButton.hidden=true;stage.classList.remove('scene-running');done?.();return}frame=requestAnimationFrame(animationTick)};
         frame=requestAnimationFrame(animationTick);
       }
-      q('#scene-pause').onclick=()=>{paused=!paused;q('#scene-pause').textContent=paused?'▶ Continuar':'Ⅱ Pausar';stage.classList.toggle('scene-paused',paused)};
-      const visibility=()=>{if(document.hidden&&busy){paused=true;q('#scene-pause').textContent='▶ Continuar';stage.classList.add('scene-paused')}};
+      if(pauseButton)pauseButton.onclick=()=>{paused=!paused;pauseButton.textContent=paused?'▶ Continuar':'Ⅱ Pausar';stage.classList.toggle('scene-paused',paused)};
+      const visibility=()=>{if(index===1){paused=document.hidden;stage.classList.toggle('scene-paused',paused);return;}if(document.hidden&&busy){paused=true;if(pauseButton)pauseButton.textContent='▶ Continuar';stage.classList.add('scene-paused')}};
       document.addEventListener('visibilitychange',visibility);
       cleanup=()=>{alive=false;cancelAnimationFrame(frame);document.removeEventListener('visibilitychange',visibility);disposers.forEach(fn=>fn());};
             function transfer(from,to,done) {
@@ -123,8 +123,8 @@ export function mountScene(index, stage, noteElement, helpers) {
         return {shelf:q('#shelf'),bench:q('#workbench')};
       }
       if(index===0) {
-        goal('Mezcla agua y descubre su nueva temperatura');
-        note('Solo en pantalla. Agua líquida, sin hielo. Modelo sin pérdidas al ambiente ni a los vasos; mezcla uniforme. El color de los vasos laterales indica temperatura; el agua central se muestra casi transparente. Lee su temperatura bajo el vaso.');
+
+        note('Solo en pantalla. Agua líquida, sin hielo. Modelo sin pérdidas al ambiente ni a los vasos; mezcla uniforme. El color de los vasos laterales indica temperatura; el agua central se muestra casi transparente. Cada vaso empieza con 100 g. El central admite 300 g y los laterales 250 g. Al sostener se vierten 5 g cada 150 ms; al tocar, hasta 25 g.');
         const labels=['A · Caliente al inicio','B · Ambiente al inicio','C · Frío al inicio'];
         const initials=[70,25,10];
         const fmt=n=>Number(n.toFixed(1)).toLocaleString('es-MX');
@@ -232,7 +232,7 @@ export function mountScene(index, stage, noteElement, helpers) {
         function reset(){
           disposeHeldPour();
           vessels=WaterMix.initial();lastMix=null;
-          board.innerHTML=`<div class="mix-row">${labels.map((label,i)=>`<button type="button" class="lab-object mix-object" data-object="water${i}" data-combinable="true">${glass(i)}<strong>${label}</strong><span class="mix-temperature">${initials[i]} °C</span><span class="object-sub">100 g de agua</span></button>`).join('')}${pourMarkup}</div><div class="mix-support"><span>100 g al inicio en cada vaso · Centro: capacidad de 300 g · Laterales: 250 g · Al sostener: 5 g cada 150 ms · Al tocar: hasta 25 g</span><button class="text-button" id="mix-calculation" hidden>¿De dónde sale esa temperatura? ↗</button><button class="text-button" id="mix-model">Cómo funciona este modelo ↗</button></div>`;
+          board.innerHTML=`<div class="mix-row">${labels.map((label,i)=>`<button type="button" class="lab-object mix-object" data-object="water${i}" data-combinable="true">${glass(i)}<strong>${label}</strong><span class="mix-temperature">${initials[i]} °C</span><span class="object-sub">100 g de agua</span></button>`).join('')}${pourMarkup}</div><div class="mix-support"><button class="text-button" id="mix-calculation" hidden>¿De dónde sale esa temperatura? ↗</button><button class="text-button" id="mix-model">Cómo funciona este modelo ↗</button></div>`;
           pourVisuals=createPourVisuals(stage,reduced);
           vessels.forEach((v,i)=>{
             draw(i,v.mass,v.temperature);
@@ -279,8 +279,7 @@ export function mountScene(index, stage, noteElement, helpers) {
               } else say('Acerca un vaso lateral al central y mantenlo ahí para verter.');
             },
           });
-          say('Sostén un vaso lateral y acércalo al central: verterás 5 g cada 150 ms. También puedes tocar dos vasos para verter 25 g.');cue('water0');
-          q('.scene-footer small').textContent = 'Sostén cerca del centro para verter; aleja o suelta para parar. Escape cancela el agarre.';
+          say('Acerca un vaso lateral al central para verter. Suéltalo para parar.');cue('water0');
           q('#mix-calculation').onclick=()=>{
             if(!lastMix)return;const {a,b,moved,temperature,source,destination}=lastMix;
             helpers.openModal('La cantidad de agua también importa',`<p>Vertiste <b>${fmt(moved)} g a ${fmt(a.temperature)} °C</b> en el vaso ${'ABC'[destination]}, que tenía <b>${fmt(b.mass)} g${b.mass?' a '+fmt(b.temperature)+' °C':''}</b>.</p><p>Para agua líquida con el mismo calor específico, sin pérdidas:</p><p class="mix-formula">Temperatura final = (masa inicial × temperatura inicial + masa añadida × temperatura añadida) ÷ masa total</p><p><b>(${fmt(b.mass)} × ${fmt(b.mass?b.temperature:0)} + ${fmt(moved)} × ${fmt(a.temperature)}) ÷ ${fmt(b.mass+moved)} ≈ ${fmt(temperature)} °C</b></p><p>Solo sería el promedio sencillo de las dos temperaturas si las dos porciones tuvieran la misma masa. Los cálculos conservan todos los decimales; la pantalla redondea a uno.</p><p>El agua restante del vaso ${'ABC'[source]} no se mezcló. Por eso no cambia de temperatura en este modelo.</p>`);
@@ -290,17 +289,17 @@ export function mountScene(index, stage, noteElement, helpers) {
         reset();
       }
       if(index===1) {
-        WaterParticles.mount({board,q,goal,note,say,readout,animate,reduced,helpers});
+        WaterParticles.mount({board,q,note,say,readout,animate,reduced,helpers});
       }
       if(index===3) {
-        goal('Encuentra tres parejas de energía');note('Se usa la aproximación del libro: 1 cal ≈ 4.187 J.');
+        note('Se usa la aproximación del libro: 1 cal ≈ 4.187 J.');
         const pairs=[['1 kcal','1 000 cal','1 × 1 000 = 1 000 cal.'],['2 kcal','2 000 cal','2 × 1 000 = 2 000 cal.'],['1 cal','≈ 4.187 J','Una caloría equivale aproximadamente a 4.187 joules.']];
         let disposeConnectors = () => {};
         disposers.push(() => disposeConnectors());
         function scene() {
           disposeConnectors();
           const matched = new Set();
-          board.innerHTML = `<div class="matching-grid"><div class="matching-column">${pairs.map((p,i)=>object('unit'+i,p[0],'token','Selecciona')).join('')}</div><div class="matching-column">${[2,0,1].map(i=>object('match'+i,pairs[i][1],'token','Su equivalente','destination')).join('')}</div></div><div class="secondary-tools"><button id="explore-calorimeter" class="illustrated-tool">${picture('calorimeter')}<span>Explora el calorímetro ↗</span></button><button id="converter" class="text-button">Abrir conversor ↗</button></div>`;
+          board.innerHTML = `<div class="matching-grid"><div class="matching-column">${pairs.map((p,i)=>object('unit'+i,p[0],'token','')).join('')}</div><div class="matching-column">${[2,0,1].map(i=>object('match'+i,pairs[i][1],'token','','destination')).join('')}</div></div><div class="secondary-tools"><button id="explore-calorimeter" class="illustrated-tool">${picture('calorimeter')}<span>Explora el calorímetro ↗</span></button><button id="converter" class="text-button">Abrir conversor ↗</button></div>`;
           say('Toca una ficha de la izquierda y su equivalente, o arrastra entre ellas para conectarlas.');
           cue('unit0');
           disposeConnectors = createMatchingConnectors({
@@ -341,12 +340,12 @@ export function mountScene(index, stage, noteElement, helpers) {
         scene();
       }
       if(index===4) {
-        goal('Protege uno y compara qué ocurre');note('Ambiente a 20 °C. Comparación ilustrativa, sin tiempo físico real. El aislamiento reduce pérdidas.');
+        note('Ambiente a 20 °C. Comparación ilustrativa, sin tiempo físico real. El aislamiento reduce pérdidas.');
         let covered=null,finished=false;
-        function scene(){finished=false;covered=null;const {shelf,bench}=assembly();shelf.innerHTML=object('coat','Funda aislante','coat','Colócala en un recipiente');bench.innerHTML=`${object('left','Recipiente A','jar','80 °C','destination')}${object('clock','Observar el paso del tiempo','clock','Primero coloca la funda')}${object('right','Recipiente B','jar','80 °C','destination')}`;placement.prepare(['coat'], ['left', 'right']);say('Toca la funda y el recipiente que quieres proteger.');cue('coat');attach('coat',()=>{choose('coat','Toca el recipiente A o B. ¿Cuál conservará mejor su temperatura?');cue('')},true);['left','right'].forEach(id=>allowDestination(id,()=>{if(selected!=='coat'){say('Selecciona la funda antes de tocar un recipiente.');return}placeCard('coat',id,()=>{covered=id;finished=false;['left','right'].forEach(n=>{item(n).classList.toggle('insulated',n===id);item(n).querySelector('.object-sub').textContent='80 °C'});readout('');say('La funda está colocada. Toca el reloj para comparar.');cue('clock')})}));attach('clock',()=>{if(!covered){say('Primero coloca la funda en uno de los recipientes.');return}if(finished){say('Mueve la funda al otro recipiente para repetir.');return}unselect();cue('');say('Los dos se enfrían. Observa cuál pierde energía más lentamente.');animate(3600,p=>{['left','right'].forEach(id=>item(id).querySelector('.object-sub').textContent=(20+60*Math.exp(-p*(id===covered?1.4:6))).toFixed(1)+' °C')},()=>{finished=true;helpers.onSuccess?.();readout('Con funda: 34.8 °C · Sin funda: 20.1 °C');say('El aislamiento frena la pérdida de energía. Mueve la funda al otro recipiente para comprobarlo.');replay(scene)});});}scene();
+        function scene(){finished=false;covered=null;const {shelf,bench}=assembly();shelf.innerHTML=object('coat','Funda aislante','coat');bench.innerHTML=`${object('left','Recipiente A','jar','80 °C','destination')}${object('clock','Observar el paso del tiempo','clock','Primero coloca la funda')}${object('right','Recipiente B','jar','80 °C','destination')}`;placement.prepare(['coat'], ['left', 'right']);say('Toca la funda y el recipiente que quieres proteger.');cue('coat');attach('coat',()=>{choose('coat','Toca el recipiente A o B. ¿Cuál conservará mejor su temperatura?');cue('')},true);['left','right'].forEach(id=>allowDestination(id,()=>{if(selected!=='coat'){say('Selecciona la funda antes de tocar un recipiente.');return}placeCard('coat',id,()=>{covered=id;finished=false;['left','right'].forEach(n=>{item(n).classList.toggle('insulated',n===id);item(n).querySelector('.object-sub').textContent='80 °C'});readout('');say('La funda está colocada. Toca el reloj para comparar.');cue('clock')})}));attach('clock',()=>{if(!covered){say('Primero coloca la funda en uno de los recipientes.');return}if(finished){say('Mueve la funda al otro recipiente para repetir.');return}unselect();cue('');say('Los dos se enfrían. Observa cuál pierde energía más lentamente.');animate(3600,p=>{['left','right'].forEach(id=>item(id).querySelector('.object-sub').textContent=(20+60*Math.exp(-p*(id===covered?1.4:6))).toFixed(1)+' °C')},()=>{finished=true;helpers.onSuccess?.();readout('Con funda: 34.8 °C · Sin funda: 20.1 °C');say('El aislamiento frena la pérdida de energía. Mueve la funda al otro recipiente para comprobarlo.');replay(scene)});});}scene();
       }
       if (index === 5) {
-        goal('Conecta cada instrumento con su encargo');
+
         note('Rangos ficticios de estos instrumentos didácticos. En la realidad, consulta el fabricante.');
         const tools = [
           ['clinical', 'Clínico digital', 'Uso corporal · 32 a 43 °C'],
@@ -364,8 +363,7 @@ export function mountScene(index, stage, noteElement, helpers) {
           disposeConnectors();
           const matched = new Set();
           board.innerHTML = `<div class="matching-grid instrument-matching"><div class="matching-column">${tools.map((tool, i) => object('unit'+i, tool[1], tool[0], tool[2])).join('')}</div><div class="matching-column">${[2, 0, 1].map(i => object('match'+i, jobs[i][1], jobs[i][0], jobs[i][2], 'destination')).join('')}</div></div>`;
-          q('.scene-footer small').textContent = 'Toca un instrumento y su encargo, o arrastra para conectarlos.';
-          say('Une las imágenes de los instrumentos con sus encargos. Fíjate en el uso y el rango.');
+          say('Conecta cada instrumento con su encargo según el uso y el rango.');
           cue('unit0');
           disposeConnectors = createMatchingConnectors({
             grid: q('.matching-grid'), reduced,
