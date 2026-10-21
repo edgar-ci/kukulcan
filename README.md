@@ -44,4 +44,6 @@ Pruebas: `node tests/mixing.test.cjs`. Incluyen 22 °C al agregar 25 g a 70 °C 
 
 El vaso central se dibuja más ancho y admite 300 g; los laterales admiten 250 g. Los tres empiezan con 100 g (70, 25 y 10 °C). Al vaciar ambos laterales en el centro, quedan 300 g a 35 °C bajo los supuestos del modelo. Las pruebas comprueban tres órdenes de vertido y conservación de masa y energía.
 
-Misión 2: termómetro range de −20 a 120 °C y tarjeta de 24 moléculas. Estados de agua pura a 1 atm; coexistencia ilustrativa a 0 y 100 °C, explicación de calor latente y evaporación. El control selecciona vistas de equilibrio, no integra calor o tiempo. Validación: node tests/particles.test.cjs.
+Misión 2: termómetro range de −20 a 120 °C y tarjeta de 64 moléculas. Estados de agua pura a 1 atm; coexistencia ilustrativa a 0 y 100 °C, explicación de calor latente y evaporación. El control selecciona vistas de equilibrio, no integra calor o tiempo. Validación: node tests/particles.test.cjs.
+
+Las posiciones, la distribución y la velocidad de las 64 partículas se interpolan conservando su identidad. Cambiar de temperatura durante una transición retoma el estado visual actual; pausa y movimiento reducido siguen disponibles. La velocidad se exagera con fines didácticos.
